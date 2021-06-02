@@ -175,12 +175,13 @@ end
 
 #########
 ## Mass Spring Damper systems
-@variables t e(t) f(t)
+@variables t e(t) f(t) q(t) p(t)
 msd = BondGraph(t)
 # Elements
 function rf(f,t)
     Int(floor(t))
 end
+
 @register rf(f, t)
 add_R!(msd, rf, :r1)
 add_C!(msd, 1.0, :c1)
