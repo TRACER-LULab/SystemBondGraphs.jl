@@ -1,0 +1,15 @@
+name = "BondGraph"
+uuid = "18a1bef0-4b6e-45f4-9b65-58c398b5f7c4"
+authors = ["Carson Farmer <carsonfarmer@icloud.com>"]
+version = "0.1.0"
+
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
+PGFPlotsX = "8314cec4-20b6-5062-9cdb-752b83310925"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
+SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
+Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
