@@ -1,4 +1,6 @@
-using BondGraph
+using BondGraphs
+using ModelingToolkit
+using DifferentialEquations
 #########
 ## Mass Spring Damper systems
 @variables t e(t) f(t) q(t) p(t)

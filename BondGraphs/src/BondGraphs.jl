@@ -1,6 +1,27 @@
 module BondGraphs
 
+using DifferentialEquations
+using ModelingToolkit
+
+export BondGraph
+export add_Bond!
+export add_R!
+export add_C!
+export add_I!
+export add_Se!
+export add_Sf!
+export add_TF!
+export add_GY!
+export add_1J!
+export add_0J!
+export generate_model!
+export simplify_model!
+export get_states
+export generate_ODE
 ## Function to create a generic Model
+"""
+Structure of a bond graph which consists of the ODEA model, (non)linear elements, multi-ports, and initial Conditions
+"""
 mutable struct BondGraph
     model::ODESystem
     elements::Dict{Symbol, ODESystem}
@@ -8,6 +29,12 @@ mutable struct BondGraph
     initial_state::Dict{Term{Real, Nothing}, Number}
 end
 
+"""
+Creation of an empty bond graph created with the specification of an independent variable
+
+# Arguments
+- `independent_variable::Symbol`: The independent variable for which the system is solved w.r.t
+"""
 function BondGraph(independent_variable)
     empty_model = ODESystem(Equation[], independent_variable, [], [], systems = [])
     return BondGraph(empty_model,Dict([]), Dict([]), Dict([]))
@@ -76,6 +103,31 @@ function add_I!(BondGraph, Φi, name)
             0.0 ~ p-Φi(f, t)
             ]
     BondGraph.elements[name] = ODESystem(eqns, BondGraph.model.iv, [e, f, p], [], defaults=Dict(e => 0.0, f => 0.0, p => 0.0), name=name)
+end
+
+## Add Memrsistive element
+function add_M!(BondGraph, M::Number, name)
+    val = I
+    @variables e(t) f(t) p(t) q(t)
+    @parameters M
+    D = Differential(t)
+    eqns = [
+            D(p) ~ e,
+            D(q) ~ f,
+            0.0 ~ p - M*q
+            ]
+    BondGraph.elements[name] = ODESystem(eqns, BondGraph.model.iv, [e, f, p, q], [M], defaults=Dict(M => val, e => 0.0, f => 0.0, p => 0.0, q=>0.0), name=name)
+end
+
+function add_M!(BondGraph, Φm, name)
+    @variables e(t) f(t) p(t) q(t)
+    D = Differential(t)
+    eqns = [
+            D(p) ~ e,
+            D(q) ~ f,
+            0.0 ~ p-Φm(q, p, t)
+            ]
+    BondGraph.elements[name] = ODESystem(eqns, BondGraph.model.iv, [e, f, p, q], [], defaults=Dict(e => 0.0, f => 0.0, p => 0.0, q=>0.0), name=name)
 end
 
 ## Add Effort Source
