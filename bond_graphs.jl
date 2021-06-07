@@ -1,5 +1,3 @@
-using Symbolics: rand
-using Base: Number
 ## Import Packages
 # using Symbolics
 using DifferentialEquations

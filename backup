@@ -1,0 +1,52 @@
+## ####
+
+
+new_eqn = []
+for eqn ∈ equations(fig5_12.model)
+     push!(new_eqn, simplify(substitute(eqn, u0)))
+end
+
+eqns = equations(fig5_12.model)
+for i ∈ eachindex(eqns)
+    if eqns[i].lhs isa Float64
+        if eqns[i].lhs == 0.0
+            rand_arg = SymbolicUtils.arguments(eqns[i].rhs)[1]
+            eqns[i] = simplify(rand_arg ~ -1*(eqns[i].rhs) + rand_arg)
+        end
+    end
+end
+
+dict_eqns = Dict(map(x-> x.lhs => x.rhs, eqns))
+new_eqns = []
+for i ∈ eachindex(eqns)
+    eqns[i] = simplify(substitute(eqns[i], dict_eqns))
+    if !(eqns[i].lhs isa Differential)
+        if !((eqns[i].lhs - eqns[i].rhs) isa Int)
+            push!(new_eqns, simplify(0.0 ~ eqns[i].lhs - eqns[i].rhs))
+        end
+    end
+end
+
+for i ∈ eachindex(new_eqns)
+    if new_eqns[i].lhs isa Float64
+        if new_eqns[i].lhs == 0.0
+            rand_arg = SymbolicUtils.arguments(new_eqns[i].rhs)[1]
+            new_eqns[i] = simplify(rand_arg ~ -1*(new_eqns[i].rhs) + rand_arg)
+        end
+    end
+end
+dict_eqns = Dict(map(x-> x.lhs => x.rhs, new_eqns))
+
+
+new_eqns = []
+diff_vars = []
+for eqn ∈ equations(fig5_12.model)
+    if eqn.lhs isa Term
+        push!(new_eqns, Symbolics.diff2term(eqn.lhs) ~ eqn.rhs)
+        push!(diff_vars, Symbolics.diff2term(eqn.lhs))
+    else
+        push!(new_eqns, eqn)
+    end
+end
+
+nl_sys = NonlinearSystem(new_eqns, diff_vars, parameters(fig5_12.model))
