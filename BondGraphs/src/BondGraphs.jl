@@ -32,17 +32,14 @@ export get_implicit
 Structure of a bond graph which consists of the ODAE model, (non)linear elements, multi-ports, and initial Conditions
 """
 struct Junction
-    elements::Vector{Symbol}
-    directions::Vector{Bool}
-    eqns::Vector{Equation}
-    parameters::Vector{Any} 
+    type::Symbol
+    elements::Dict{Symbol,Bool}
+    sys::ODESystem
 end
 
 struct Element
     type::Symbol
-    name::Symbol
     sys::ODESystem
-    parameters
     state_var::Vector{Num}
 end
 
@@ -70,50 +67,28 @@ end
 function add_Bond!(BondGraph, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
     sys = ODESystem(Equation[], BondGraph.model.iv, [e, f], [], name=name)
-    BondGraph.elements[name] = Element(:B, name, sys, [], [])
+    BondGraph.elements[name] = Element(:B, sys, [])
 end
 
 ## Add R_element to Model
 """
-add_R! with two arguements assumes that the element is linear
+add_R! with two arguments assumes that the element is linear
 """
-# # function add_R!(BondGraph, R::Number, name)
-# #     val = R
-# #     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
-# #     @parameters R
-# #     eqns = [e ~ R * f]
-# #     sys = ODESystem(eqns, BondGraph.model.iv, [e, f], [R], defaults=Dict(R => val), name=name)
-# #     # element = Element(name, sys, [R], [])
-# #     BondGraph.elements[name] = Element(:R, name, sys, [R], [])
-# # end
 function add_R!(BondGraph, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
     @parameters R
     eqns = [e ~ R * f ]
     sys  = ODESystem(eqns, BondGraph.model.iv, [e, f], [R], name=name)
-    BondGraph.elements[name] = Element(:R, name, sys, [R], [])
+    BondGraph.elements[name] = Element(:R, sys, [])
 end
 function add_R!(BondGraph, Φr, params, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
     eqns = [e ~ Φr(e, f, BondGraph.model.iv)]
-    sys =  ODESystem(eqns, BondGraph.model.iv, [e, f], [], name=name)
-    BondGraph.elements[name] = Element(:R, name, sys, params, [])
+    sys =  ODESystem(eqns, BondGraph.model.iv, [e, f], params, name=name)
+    BondGraph.elements[name] = Element(:R, sys, params, [])
 end
 
 # ## Add C-element to Model
-# # function add_C!(BondGraph, C::Number, name)
-# #     val = C
-# #     @variables e(BondGraph.model.iv) f(BondGraph.model.iv) q(BondGraph.model.iv)
-# #     @parameters C
-# #     D = Differential(BondGraph.model.iv)
-# #     eqns = [
-# #             D(q) ~ f,
-# #             e ~ q / C
-# #             ]
-# #     sys = ODESystem(eqns, BondGraph.model.iv, [e, f, q], [C], defaults=Dict(C => val), name=name)
-# #     BondGraph.elements[name] = Element(:C, name, sys, [C], [sys.q])
-# #     push!(BondGraph.state_vars, BondGraph.elements[name].q)
-# # end
 function add_C!(BondGraph, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv) q(BondGraph.model.iv)
     @parameters C
@@ -123,7 +98,7 @@ function add_C!(BondGraph, name)
             e ~ q / C
             ]
     sys = ODESystem(eqns, BondGraph.model.iv, [e, f, q], [C], name=name)
-    BondGraph.elements[name] =  Element(:C, name, sys, [C], [sys.q])
+    BondGraph.elements[name] =  Element(:C, sys, [sys.q])
     # push!(BondGraph.state_vars, BondGraph.elements[name].q)
 end
 function add_C!(BondGraph, Φc, params, name)
@@ -135,23 +110,11 @@ function add_C!(BondGraph, Φc, params, name)
             # 0.0 ~ Φc(e, q, BondGraph.model.iv)
             ]
     sys = ODESystem(eqns, BondGraph.model.iv, [e, f, q], [], name=name)
-    BondGraph.elements[name] = Element(:C, name, sys, params, [sys.q])
+    BondGraph.elements[name] = Element(:C, sys, params, [sys.q])
     # push!(BondGraph.state_vars, BondGraph.elements[name].q)
 end
 
 # ## Add I-element to model
-# # function add_I!(BondGraph, I::Number, name)
-# #     val = I
-# #     @variables e(BondGraph.model.iv) f(BondGraph.model.iv) p(BondGraph.model.iv)
-# #     @parameters I
-# #     D = Differential(BondGraph.model.iv)
-# #     eqns = [
-# #             D(p) ~ e,
-# #             f ~ p / I
-# #             ]
-# #     BondGraph.elements[name] = ODESystem(eqns, BondGraph.model.iv, [e, f, p], [I], defaults=Dict(I => val), name=name)
-# #     push!(BondGraph.state_vars, BondGraph.elements[name].p)
-# # end
 function add_I!(BondGraph, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv) p(BondGraph.model.iv)
     @parameters I
@@ -161,7 +124,7 @@ function add_I!(BondGraph, name)
             f ~ p / I
             ]
     sys = ODESystem(eqns, BondGraph.model.iv, [e, f, p], [I], name=name)
-    BondGraph.elements[name] = Element(:I, name, sys, [I], [sys.p])
+    BondGraph.elements[name] = Element(:I, sys, [sys.p])
     # push!(BondGraph.state_vars, BondGraph.elements[name].p)
 end
 function add_I!(BondGraph, Φi, params, name)
@@ -172,25 +135,11 @@ function add_I!(BondGraph, Φi, params, name)
             f ~ Φi(p, f, BondGraph.model.iv) # Integral Causality Form
             ]
     sys = ODESystem(eqns, BondGraph.model.iv, [e, f, p], [], name=name)
-    BondGraph.elements[name] = Element(:I, name, sys, params, [sys.p])
+    BondGraph.elements[name] = Element(:I, sys, [sys.p])
     # push!(BondGraph.state_vars, BondGraph.elements[name].p)
 end
 
 ## Add Memrsistive element
-function add_M!(BondGraph, M::Number, name)
-    val = M
-    @variables e(BondGraph.model.iv) f(BondGraph.model.iv) p(BondGraph.model.iv) q(BondGraph.model.iv)
-    @parameters M
-    D = Differential(BondGraph.model.iv)
-    eqns = [
-            D(p) ~ e,
-            D(q) ~ f,
-            0.0 ~ p - M * q
-            ]
-    BondGraph.elements[name] = ODESystem(eqns, BondGraph.model.iv, [e, f, p, q], [M], name=name)
-    push!(BondGraph.state_vars, BondGraph.elements[name].p)
-    push!(BondGraph.state_vars, BondGraph.elements[name].q)
-end
 function add_M!(BondGraph, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv) p(BondGraph.model.iv) q(BondGraph.model.iv)
     @parameters M
@@ -218,43 +167,64 @@ function add_M!(BondGraph, Φm, name)
 end
 
 ## Add Effort Source
+function add_Se!(BondGraph, name)
+    @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
+    @parameters Se(BondGraph.model.iv)
+    eqns = [0.0 ~ e - Se]
+    sys = ODESystem(eqns, BondGraph.model.iv, [e, f], [Se], name=name)
+    BondGraph.elements[name] = Element(:Se, sys, [])
+end
+
 function add_Se!(BondGraph, Se::Number, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
     eqns = [0.0 ~ e - Se]
     sys = ODESystem(eqns, BondGraph.model.iv, [e, f], [], name=name)
-    BondGraph.elements[name] = Element(:Se, name, sys, [], [])
+    BondGraph.elements[name] = Element(:Se, sys, [])
 end
-function add_Se!(BondGraph, Se, params, name)
+function add_Se!(BondGraph, Se, params::Vector{}, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
-    eqns = [0.0 ~ e - Se(e, f, BondGraph.model.iv, params)]
-    sys = ODESystem(eqns, BondGraph.model.iv, [e, f], [], name=name)
-    BondGraph.elements[name] = Element(:Se, name, sys, params, [])
+    eqns = [0.0 ~ e - Se(BondGraph.model.iv, params)]
+    sys = ODESystem(eqns, BondGraph.model.iv, [e, f], params, name=name)
+    BondGraph.elements[name] = Element(:Se, sys, [])
 end
 
 ## Add Flow Source
+function add_Sf!(BondGraph, name)
+    @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
+    @parameters Sf(BondGraph.model.iv)
+    eqns = [0.0 ~ f - Sf]
+    sys = ODESystem(eqns, BondGraph.model.iv, [e, f], [Sf], name=name)
+    BondGraph.elements[name] = Element(:Se, sys, [])
+end
+
 function add_Sf!(BondGraph, Sf::Number, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
     eqns = [0.0 ~ f - Sf]
-    sys = ODESystem(eqns, BondGraph.model.iv, [e, f], [], name=name)
-    BondGraph.elements[name] = Element(:Sf, name, sys, [], [])
+    sys = ODESystem(eqns, BondGraph.model.iv, [e, f], [Sf], name=name)
+    BondGraph.elements[name] = Element(:Sf, sys, [])
 end
-function add_Sf!(BondGraph, Sf, ps::Vector, name)
+
+function add_Sf!(BondGraph, Sf, params::Vector{}, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
-    eqns = [0.0 ~ f - Sf(e, f, BondGraph.model.iv)]
-    sys = ODESystem(eqns, BondGraph.model.iv, [e, f], [], name=name)
-    BondGraph.elements[name] = Element(:Sf, name, sys, ps, [])
+    display("Hello")
+    eqns = [0.0 ~ f - Sf(BondGraph.model.iv, params)]
+    sys = ODESystem(eqns, BondGraph.model.iv, [e, f], params, name=name)
+    BondGraph.elements[name] = Element(:Sf, sys, [])
 end
 
 ## Add 1-junction to model
 function add_1J!(BondGraph, elements::Dict{Symbol,Bool}, name)
+    elems = collect(keys(elements))
     eqns = [
             0.0 ~ sum(x -> BondGraph.elements[x].sys.e * (-1).^(elements[x]), keys(elements)) # Sum of all flows is 0
             ]
-    elems = collect(keys(elements))
     for i ∈ 1:length(elems) - 1
         push!(eqns, BondGraph.elements[elems[i]].sys.f ~ BondGraph.elements[elems[i + 1]].sys.f) # effort equality
     end
-    BondGraph.junctions[name] = Junction(collect(keys(elements)), collect(values(elements)), eqns, [])
+    systems = map(x -> BondGraph.elements[x].sys, elems)
+    display(systems)
+    BondGraph.junctions[name] = Junction(:J1, elements, ODESystem(eqns, BondGraph.model.iv))
+    # return sys
 end
 
 ## Add 0-junction to model
@@ -267,38 +237,44 @@ function add_0J!(BondGraph, elements::Dict{Symbol,Bool}, name)
     for i ∈ 1:length(elems) - 1
         push!(eqns, BondGraph.elements[elems[i]].sys.e ~ BondGraph.elements[elems[i + 1]].sys.e) # effort equality
     end
-    BondGraph.junctions[name] = Junction(collect(keys(elements)), collect(values(elements)), eqns, [])
+    BondGraph.junctions[name] = Junction(:J0, elements, ODESystem(eqns, BondGraph.model.iv, [], [], name=name))
 end
 
 ## Add Transformer to Model
-function add_TF!(BondGraph, m, elements::Dict{Symbol,Bool}, name)
+function add_TF!(BondGraph, elements::Dict{Symbol,Bool}, name)
+    @parameters m
     elems = collect(keys(elements))
     directions = map(x -> elements[x], elems)
     eqns = [
         0.0 ~ BondGraph.elements[elems[1]].sys.e * (-1)^directions[1] - m * BondGraph.elements[elems[2]].sys.e * (-1)^directions[2], 
         0.0 ~ m * BondGraph.elements[elems[1]].sys.f * (-1)^directions[1] - BondGraph.elements[elems[2]].sys.f * (-1)^directions[2]
     ]
-    BondGraph.junctions[name] = Junction(collect(keys(elements)), collect(values(elements)), eqns, [m])
+    BondGraph.junctions[name] = Junction(:TF, elements, ODESystem(eqns, BondGraph.model.iv, [], [m], name=name))
 end
 
 # Add Gyrator to Model Function add_TF(BondGraph, m, elements::Dict{Symbol, Bool},name)
-function add_GY!(BondGraph, r, elements::Dict{Symbol,Bool}, name)
+function add_GY!(BondGraph, elements::Dict{Symbol,Bool}, name)
+    @parameters r
     elems = collect(keys(elements))
     directions = map(x -> elements[x], elems)
     eqns = [
         0.0 ~ BondGraph.elements[elems[1]].sys.e * (-1)^directions[1] + (-1) * r * BondGraph.elements[elems[2]].sys.f * (-1)^directions[2], 
         0.0 ~ r * BondGraph.elements[elems[1]].sys.f * (-1)^directions[1] + (-1) * BondGraph.elements[elems[2]].sys.e * (-1)^directions[2]
     ]
-    BondGraph.junctions[name] = Junction(collect(keys(elements)), collect(values(elements)), eqns, [r])
+    BondGraph.junctions[name] = Junction(:GY, elements, ODESystem(eqns, BondGraph.model.iv, [], [r], name=name, ))
 end
 
 ## Create ODE System From Bond Graph Construction 
 function generate_model!(BondGraph)
-    elements = collect(values(BondGraph.elements))
-    elements = map(x -> x.sys, elements)
+    # elements = collect(values(BondGraph.elements))
+    # elements = map(x -> x.sys, elements)
     junctions = collect(values(BondGraph.junctions))
-    junctions = reduce(vcat, map(x -> x.eqns, junctions))
-    BondGraph.model = ODESystem(junctions, BondGraph.model.iv, systems=elements)
+    junctions = reduce(vcat, map(x -> equations(x.sys), junctions))
+    elem_sys = map(x -> x.sys, collect(values(BondGraph.elements)))
+    # elem_sys = reduce(vcat, elem_sys)
+    # junc_sys = map(x -> equations(x.sys), collect(values(BondGraph.junctions)))
+    # junc_sys = reduce(vcat, junc_sys)
+    BondGraph.model = ODESystem(junctions, BondGraph.model.iv, systems=elem_sys)
 end
 ## Get parameters
 function get_parameters!(BondGraph)
@@ -307,7 +283,7 @@ function get_parameters!(BondGraph)
 end
 ## Simplify Bond Graph System 
 function simplify_model!(BondGraph)
-    BondGraph.model = structural_simplify(BondGraph.model)
+    BondGraph.model = tearing(structural_simplify(BondGraph.model))
 end
 ## Get Independent Variables of system
 function get_states(BondGraph)

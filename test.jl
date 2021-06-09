@@ -1,17 +1,19 @@
+using ModelingToolkit:generate_affect_function
+using Base:has_nondefault_cmd_flags
 using BondGraphs
 using ModelingToolkit
 using DifferentialEquations
 using Plots
 using Symbolics
 using SymbolicUtils
-
+using Unitful
 ## TODO: Implement automated DAE construction with mass matrix to use DAE_index lowering to simplify Problem
-# Genereate MAss Matrix from Iterating over the equations. 
+# Genereate Mass Matrix from Iterating over the equations. 
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## 
 ##  Linear Mass Spring Damper Systems  ## 
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## 
 
-@variables t e(t) f(t) q(t) p(t)
+@variables t
 msd = BondGraph(t)
 # Elements
 add_R!(msd, :r1)  
@@ -26,21 +28,26 @@ add_1J!(msd, Dict([
     :se => false]),
     :J1)
 # Creating Model
-generate_model!(msd)
 # Set Problem parameters
-msd.elements[:r1].sys.R = 1.0
-msd.elements[:c1].sys.C = 2.0
-msd.elements[:i1].sys.I = 3.0
+msd.elements[:r1].sys.R = 0.00001
+msd.elements[:c1].sys.C = 1.0
+msd.elements[:i1].sys.I = 200
 # Set initial conditions
 u0 = [
     msd.elements[:c1].sys.q => 0.0,
     msd.elements[:i1].sys.p => 0.0,
     ]
+ps = [
+    msd.elements[:c1].sys.C => 0.1,
+    msd.elements[:r1].sys.R => 0.00001,
+    msd.elements[:i1].sys.I => 3.0
+]
 # Set TimeSpan
 tspan = (0.0, 10.0)
+generate_model!(msd, ps)
 simplify_model!(msd)
-prob = ODAEProblem(msd.model, u0, tspan)
-sol = solve(prob, Rodas4())
+prob = ODEProblem(msd.model, u0, tspan, ps=[1.0 ,100, 3.0])
+sol = solve(prob, Rodas5())
 plot(sol)
 
 ## ## ## ## ## ## ## ## ## ## ## ## ## ##   
@@ -140,7 +147,7 @@ u0 = [
 # Set TimeSpan
 tspan = (0.0, 2.0)
 simplify_model!(quarterCar)
-prob = ODAEProblem(quarterCar.model, u0, tspan, sparse=true, jac=true)
+prob = ODEProblem(quarterCar.model, u0, tspan, sparse=true, jac=true)
 sol = solve(prob)
 Plots.plot(sol, vars=[quarterCar.elements[:ks].sys.e, quarterCar.elements[:kt].sys.e]) 
 
@@ -245,7 +252,7 @@ add_1J!(fig5_12, Dict([
     :J12)
 # Create and Solve
 generate_model!(fig5_12)
-
+fig5_12.elements[:I_8].sys.I = 1.0
 function get_diff(eqn)
     diff_eqns = []
     alg_eqns = []
@@ -284,7 +291,7 @@ function rewrite_eqns(eqns)
     for i ∈ eachindex(eqns)
         eqns[i] = eqns[i].lhs ~ Symbolics.solve_for(eqns[i].rhs - eqns[i].lhs ~ 0.0, eqns[i].lhs)
     end
-   return eqns
+    return eqns
 end
 
 eqns = rewrite_eqns(equations(sys))
@@ -307,3 +314,4 @@ ps = [
 prob = ODAEProblem(sys, u0, tspan, ps)
 sol = solve(prob, Rodas4())
 plot(sol)
+
