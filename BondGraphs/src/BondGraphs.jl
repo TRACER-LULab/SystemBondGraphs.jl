@@ -85,7 +85,7 @@ function add_R!(BondGraph, Φr, params, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
     eqns = [e ~ Φr(e, f, BondGraph.model.iv)]
     sys =  ODESystem(eqns, BondGraph.model.iv, [e, f], params, name=name)
-    BondGraph.elements[name] = Element(:R, sys, params, [])
+    BondGraph.elements[name] = Element(:R, sys, [])
 end
 
 # ## Add C-element to Model
@@ -110,7 +110,7 @@ function add_C!(BondGraph, Φc, params, name)
             # 0.0 ~ Φc(e, q, BondGraph.model.iv)
             ]
     sys = ODESystem(eqns, BondGraph.model.iv, [e, f, q], [], name=name)
-    BondGraph.elements[name] = Element(:C, sys, params, [sys.q])
+    BondGraph.elements[name] = Element(:C, sys, [sys.q])
     # push!(BondGraph.state_vars, BondGraph.elements[name].q)
 end
 
@@ -200,13 +200,12 @@ end
 function add_Sf!(BondGraph, Sf::Number, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
     eqns = [0.0 ~ f - Sf]
-    sys = ODESystem(eqns, BondGraph.model.iv, [e, f], [Sf], name=name)
+    sys = ODESystem(eqns, BondGraph.model.iv, [e, f], [], name=name)
     BondGraph.elements[name] = Element(:Sf, sys, [])
 end
 
 function add_Sf!(BondGraph, Sf, params::Vector{}, name)
     @variables e(BondGraph.model.iv) f(BondGraph.model.iv)
-    display("Hello")
     eqns = [0.0 ~ f - Sf(BondGraph.model.iv, params)]
     sys = ODESystem(eqns, BondGraph.model.iv, [e, f], params, name=name)
     BondGraph.elements[name] = Element(:Sf, sys, [])
@@ -222,7 +221,6 @@ function add_1J!(BondGraph, elements::Dict{Symbol,Bool}, name)
         push!(eqns, BondGraph.elements[elems[i]].sys.f ~ BondGraph.elements[elems[i + 1]].sys.f) # effort equality
     end
     systems = map(x -> BondGraph.elements[x].sys, elems)
-    display(systems)
     BondGraph.junctions[name] = Junction(:J1, elements, ODESystem(eqns, BondGraph.model.iv))
     # return sys
 end
