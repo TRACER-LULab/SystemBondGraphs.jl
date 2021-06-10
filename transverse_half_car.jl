@@ -121,15 +121,17 @@ halfcar.elements[:i4].sys.p  => 0.0,
 halfcar.elements[:i12].sys.p => 0.0,
 halfcar.elements[:i19].sys.p => 0.0,
 halfcar.elements[:c20].sys.q => 0.0,
-]
+] |> Dict
+u0 = ArrayPartition(map(x -> [u0[x]], states(halfcar.model))...)
+
 # Set Parameter Dictionary for parameters of interest
 ps = [
-halfcar.elements[:sf1].sys.α  => 0.01,
-halfcar.elements[:c2].sys.C   => 1.0,
+halfcar.elements[:sf1].sys.α  => 1.0,
+halfcar.elements[:c2].sys.C   => 1.0 ± 0.1,
 halfcar.elements[:i4].sys.I   => 1.0,
 halfcar.elements[:se5].sys.Se => 9.81,
 halfcar.elements[:c8].sys.C   => 1.0,
-halfcar.elements[:r9].sys.R   => 1.0,
+halfcar.elements[:r9].sys.R   => 2.0 ± 0.5,
 halfcar.elements[:i12].sys.I  => 1.0,
 halfcar.elements[:se11].sys.Se => 9.8,
 halfcar.elements[:c15].sys.C  => 1.0,
@@ -139,9 +141,16 @@ halfcar.elements[:se18].sys.Se => 9.8,
 halfcar.elements[:c20].sys.C  => 1.0,
 halfcar.elements[:c22].sys.C  => 1.0,
 halfcar.elements[:r25].sys.R  => 1.0,
-halfcar.elements[:sf1].sys.ω  => 20.0
-]
-tspan = (0.0, 10) 
-prob = ODEProblem(halfcar.model, u0, tspan, ps)
+halfcar.elements[:sf1].sys.ω  => 20.0 ± 10.0
+] |> Dict
+ps = ArrayPartition(map(x -> [ps[x]], parameters(halfcar.model))...)
+
+tspan = (0.0, 250) 
+func = ODEFunction(halfcar.model)
+prob = ODEProblem(func, u0, tspan, ps)
 sol = solve(prob, Tsit5())
-plot(sol)
+plot()
+for i in 1:8
+    plot!(sol.t, getindex.(sol.u, i), xlims=(0, 250))
+end
+plot!(legend=false)
