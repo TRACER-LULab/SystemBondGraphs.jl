@@ -1,5 +1,3 @@
-using ModelingToolkit:generate_affect_function
-using Base:has_nondefault_cmd_flags
 using BondGraphs
 using ModelingToolkit
 using DifferentialEquations
@@ -163,7 +161,7 @@ add_I!(fig5_10, :m)
 add_R!(fig5_10, :b1)
 add_R!(fig5_10, :b2)
 add_C!(fig5_10, :k)
-add_Sf!(fig5_10, 1.0, :Sf)
+add_Sf!(fig5_10, t, :Sf)
 add_Bond!(fig5_10, :b3)
 add_Bond!(fig5_10, :b5)
 add_Bond!(fig5_10, :b7)

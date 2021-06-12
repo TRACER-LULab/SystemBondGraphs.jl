@@ -35,6 +35,7 @@ struct Junction
     type::Symbol
     elements::Dict{Symbol,Bool}
     sys::ODESystem
+    parameters::Vector{Any}
 end
 
 struct Element
@@ -221,7 +222,7 @@ function add_1J!(BondGraph, elements::Dict{Symbol,Bool}, name)
         push!(eqns, BondGraph.elements[elems[i]].sys.f ~ BondGraph.elements[elems[i + 1]].sys.f) # effort equality
     end
     systems = map(x -> BondGraph.elements[x].sys, elems)
-    BondGraph.junctions[name] = Junction(:J1, elements, ODESystem(eqns, BondGraph.model.iv))
+    BondGraph.junctions[name] = Junction(:J1, elements, ODESystem(eqns, BondGraph.model.iv), [])
     # return sys
 end
 
@@ -235,31 +236,37 @@ function add_0J!(BondGraph, elements::Dict{Symbol,Bool}, name)
     for i ∈ 1:length(elems) - 1
         push!(eqns, BondGraph.elements[elems[i]].sys.e ~ BondGraph.elements[elems[i + 1]].sys.e) # effort equality
     end
-    BondGraph.junctions[name] = Junction(:J0, elements, ODESystem(eqns, BondGraph.model.iv, [], [], name=name))
+    # systems = map(x -> BondGraph.elements[x].sys, elems)
+    BondGraph.junctions[name] = Junction(:J0, elements, ODESystem(eqns, BondGraph.model.iv, [], [], name=name), [])
 end
 
 ## Add Transformer to Model
-function add_TF!(BondGraph, elements::Dict{Symbol,Bool}, name)
-    @parameters m
+function add_TF!(BondGraph, m, elements::Dict{Symbol,Bool}, name)
+    # @parameters m
     elems = collect(keys(elements))
+    elem_sys = map(x -> BondGraph.elements[x].sys, elems)
     directions = map(x -> elements[x], elems)
     eqns = [
         0.0 ~ BondGraph.elements[elems[1]].sys.e * (-1)^directions[1] - m * BondGraph.elements[elems[2]].sys.e * (-1)^directions[2], 
         0.0 ~ m * BondGraph.elements[elems[1]].sys.f * (-1)^directions[1] - BondGraph.elements[elems[2]].sys.f * (-1)^directions[2]
     ]
-    BondGraph.junctions[name] = Junction(:TF, elements, ODESystem(eqns, BondGraph.model.iv, [], [m], name=name))
+    element_sys = map(x -> BondGraph.elements[x].sys, elems)
+    sys = ODESystem(eqns, BondGraph.model.iv,  [BondGraph.elements[elems[1]].sys.e, BondGraph.elements[elems[2]].sys.f, BondGraph.elements[elems[1]].sys.f, BondGraph.elements[elems[2]].sys.e], [m], name=name)
+    BondGraph.junctions[name] = Junction(:TF, elements, sys, parameters(sys))
 end
 
 # Add Gyrator to Model Function add_TF(BondGraph, m, elements::Dict{Symbol, Bool},name)
-function add_GY!(BondGraph, elements::Dict{Symbol,Bool}, name)
-    @parameters r
+function add_GY!(BondGraph, r, elements::Dict{Symbol,Bool}, name)
+    # @parameters r
     elems = collect(keys(elements))
     directions = map(x -> elements[x], elems)
     eqns = [
         0.0 ~ BondGraph.elements[elems[1]].sys.e * (-1)^directions[1] + (-1) * r * BondGraph.elements[elems[2]].sys.f * (-1)^directions[2], 
         0.0 ~ r * BondGraph.elements[elems[1]].sys.f * (-1)^directions[1] + (-1) * BondGraph.elements[elems[2]].sys.e * (-1)^directions[2]
     ]
-    BondGraph.junctions[name] = Junction(:GY, elements, ODESystem(eqns, BondGraph.model.iv, [], [r], name=name, ))
+    element_sys = map(x -> BondGraph.elements[x].sys, elems)
+    sys = ODESystem(eqns, BondGraph.model.iv, [BondGraph.elements[elems[1]].sys.e, BondGraph.elements[elems[2]].sys.f, BondGraph.elements[elems[1]].sys.f, BondGraph.elements[elems[2]].sys.e], [r], name=name)
+    BondGraph.junctions[name] = Junction(:GY, elements, sys, parameters(sys))
 end
 
 ## Create ODE System From Bond Graph Construction 
@@ -267,12 +274,16 @@ function generate_model!(BondGraph)
     # elements = collect(values(BondGraph.elements))
     # elements = map(x -> x.sys, elements)
     junctions = collect(values(BondGraph.junctions))
-    junctions = reduce(vcat, map(x -> equations(x.sys), junctions))
+    junc_sys = map(x -> x.sys, junctions)
+    junc_ps = reduce(vcat, map(x -> parameters(x.sys), junctions))
+    junc_eqns = reduce(vcat, map(x -> equations(x.sys), junctions))
+    display(junc_ps)
     elem_sys = map(x -> x.sys, collect(values(BondGraph.elements)))
+    # state_vars = reduce(vcat,map(x->states(x), elem_sys))
     # elem_sys = reduce(vcat, elem_sys)
     # junc_sys = map(x -> equations(x.sys), collect(values(BondGraph.junctions)))
     # junc_sys = reduce(vcat, junc_sys)
-    BondGraph.model = ODESystem(junctions, BondGraph.model.iv, systems=elem_sys)
+    BondGraph.model = ODESystem(junc_eqns, BondGraph.model.iv, [], [], systems=elem_sys)
 end
 ## Get parameters
 function get_parameters!(BondGraph)
