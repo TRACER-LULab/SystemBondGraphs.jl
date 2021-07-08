@@ -11,7 +11,7 @@ cart_pole = BondGraph(t)
 ## Create Elements
 add_Se!(cart_pole, :in)
 add_I!(cart_pole, :mc)
-add_R!(cart_pole, :r1)
+# add_R!(cart_pole, :r1)
 add_Bond!(cart_pole, :b3)
 add_Bond!(cart_pole, :b4)
 add_I!(cart_pole, :mpx; causality=true)
@@ -28,8 +28,8 @@ add_I!(cart_pole, :mpy; causality=true)
 add_1J!(cart_pole, Dict([
     :in => false,
     :mc => true,
-    :b3 => false,
-    :r1 => true 
+    :b3 => false
+    # :r1 => true 
     ]), :v_c_x)
 add_0J!(cart_pole, Dict([
     :b3 => true,
@@ -81,25 +81,4 @@ cart_pole.model = ODESystem(eqns, t, sts, ps)
 ##
 resolve_derivative_causality!(cart_pole)
 simplify_model!(cart_pole)
-save_object("cart_pole_damper.jld2", cart_pole.model)
-
-# ##
-# u0 = [
-#     cart_pole.elements[:J].sys.p => 0.0,
-#     cart_pole.elements[:mc].sys.p => 0.0,
-#     x => 0.0,
-#     θ => randn() * pi / 180
-#     ] |> Dict
-
-# ps = [
-#     cart_pole.elements[:mpx].sys.I => 10.0,
-#     cart_pole.elements[:mpy].sys.I => 10.0,
-#     cart_pole.elements[:mc].sys.I => 1.0,
-#     cart_pole.elements[:J].sys.I => 10.0 * 0.5^2,
-#     l => 0.5,
-#     cart_pole.elements[:mpg].sys.Se => 10.0 * 9.81,
-#     cart_pole.elements[:in].sys.Se => 0.0,
-#     ] |> Dict
-# prob = ODAEProblem(cart_pole.model, u0, (0.0, 10.0), ps)
-# sol = solve(prob)
-# plot(sol, vars=[θ])
+save_object("cart_pole.jld2", cart_pole.model)

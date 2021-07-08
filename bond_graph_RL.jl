@@ -11,9 +11,9 @@ using Symbolics
 using DifferentialEquations
 
 ## Load BondGraph Model and create symbolic variables
-model = load_object("cart_pole_model.jld2")
+model = load_object("cart_pole.jld2")
 @variables t J₊p(t) mc₊p(t) x(t) θ(t) mc₊f(t) J₊f(t)
-@parameters mpx₊I mpy₊I mc₊I J₊I l mpg₊Se(t) in₊Se(t)
+@parameters mpx₊I mpy₊I mc₊I J₊I l mpg₊Se(t) in₊Se(t) r1₊R
 
 ## 
 function createEnv(θ0, mass_pole, mass_cart, pole_length, gravity, dt)
@@ -31,6 +31,7 @@ function createEnv(θ0, mass_pole, mass_cart, pole_length, gravity, dt)
         J₊I => mass_pole * pole_length^2,
         l => pole_length,
         mpg₊Se => mass_pole * gravity,
+        r1₊R => 0.01,
         in₊Se => 0.0
         ] |> Dict
     prob = ODAEProblem(model, u0, (0.0, 10.0), ps, dt=dt)
@@ -148,6 +149,11 @@ Random.seed!(env::CartPoleEnv, seed) = Random.seed!(env.rng, seed)
 function RL.Experiment(
     ::Val{:JuliaRL},
     ::Val{:BasicDQN},
+        J₊p => 0.0,    
+        mc₊p => 0.0,
+        x => 0.0,
+        θ => θ0
+        ] |> Dict
     ::Val{:CartPoleBG},
     ::Nothing;
     seed=123,
@@ -157,6 +163,9 @@ function RL.Experiment(
     ns, na = length(state(env)), length(action_space(env))
 
     policy = Agent(
+        policy=QBasedPolicy(
+            learner=BasicDQNLearner(
+                approximator=NeuralNetworkApproximator(
         policy=QBasedPolicy(
             learner=BasicDQNLearner(
                 approximator=NeuralNetworkApproximator(
@@ -186,7 +195,7 @@ function RL.Experiment(
     )
     stop_condition = StopAfterEpisode(200, is_show_progress=!haskey(ENV, "CI"))
     hook = TotalRewardPerEpisode()
-    Experiment(policy, env, stop_condition, hook, "# Basi> CartPole")
+    Experiment(policy, env, stop_condition, hook, "# BasicDQN > CartPole")
 end
 
 ex = E`JuliaRL_BasicDQN_CartPoleBG`
@@ -202,7 +211,7 @@ anim = @animate for i ∈ eachindex(ex.env.de_env.sol.t)
         [0.0, cos(ex.env.de_env.sol[θ][i]) * 0.5], 
         xlims=(-1.5, 1.5),
     ylims=(-1.5, 1.5),
-        title=string(ex.env.de_env.sol.t[i]),
+        title="t="*string(round(ex.env.de_env.sol.t[i], digits = 3)),
         linewidth=3,
         aspect_ratio=1
     )
@@ -214,4 +223,4 @@ anim = @animate for i ∈ eachindex(ex.env.de_env.sol.t)
         legend=false
     )
 end
-gif(anim, "cart_pole_BG.gif", fps=50)
+gif(anim, "cart_pole_BG_damper.gif", fps=50)
