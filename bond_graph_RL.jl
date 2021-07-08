@@ -74,7 +74,7 @@ function CartPoleEnv(;
     force_mag=10.0,
     dt=0.02,
     theta_threshold=3.14159 / 4,
-    x_threshold=1.5,
+    x_threshold=1.0,
     theta_start=randn() * 5 * π / 180,
     max_steps=200,
     rng=Random.GLOBAL_RNG,
@@ -137,7 +137,7 @@ function (env::CartPoleEnv)(a)
     env.state[4] = env.de_env.sol[J₊f][end]
     env.done =
         abs(env.state[1]) > env.params.x_threshold ||
-        abs(env.state[3]) > env.params.theta_threshold
+        abs(env.state[3]) > env.params.theta_threshold ||
         env.t > env.params.max_steps
     nothing
 end
@@ -184,7 +184,7 @@ function RL.Experiment(
             state=Vector{Float32} => (ns,),
         ),
     )
-    stop_condition = StopAfterEpisode(100, is_show_progress=!haskey(ENV, "CI"))
+    stop_condition = StopAfterEpisode(200, is_show_progress=!haskey(ENV, "CI"))
     hook = TotalRewardPerEpisode()
     Experiment(policy, env, stop_condition, hook, "# Basi> CartPole")
 end
@@ -210,7 +210,8 @@ anim = @animate for i ∈ eachindex(ex.env.de_env.sol.t)
         [ex.env.de_env.sol[x][i]],
         [0],
         markersize=6,
-        c=:red
+        c=:red,
+        legend=false
     )
 end
-gif(anim, "cart_pole_BG.gif")
+gif(anim, "cart_pole_BG.gif", fps=50)

@@ -1,10 +1,9 @@
-using Flux:glorot_uniform
 ## Imports
 using BondGraphs
 using Symbolics
 using ModelingToolkit
 using DifferentialEquations
-
+using JLD2
 ## Setup
 @variables t e(t) f(t) q(t) p(t)
 ## Create BondGraph
@@ -12,7 +11,7 @@ cart_pole = BondGraph(t)
 ## Create Elements
 add_Se!(cart_pole, :in)
 add_I!(cart_pole, :mc)
-# add_R!(cart_pole, :r1)
+add_R!(cart_pole, :r1)
 add_Bond!(cart_pole, :b3)
 add_Bond!(cart_pole, :b4)
 add_I!(cart_pole, :mpx; causality=true)
@@ -29,7 +28,8 @@ add_I!(cart_pole, :mpy; causality=true)
 add_1J!(cart_pole, Dict([
     :in => false,
     :mc => true,
-    :b3 => false 
+    :b3 => false,
+    :r1 => true 
     ]), :v_c_x)
 add_0J!(cart_pole, Dict([
     :b3 => true,
@@ -81,6 +81,7 @@ cart_pole.model = ODESystem(eqns, t, sts, ps)
 ##
 resolve_derivative_causality!(cart_pole)
 simplify_model!(cart_pole)
+save_object("cart_pole_damper.jld2", cart_pole.model)
 
 # ##
 # u0 = [
