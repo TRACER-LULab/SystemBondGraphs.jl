@@ -205,7 +205,7 @@ u0 = [
 tspan = (0.0, 2.0)
 simplify_model!(fig5_10)
 prob = ODAEProblem(fig5_10.model, u0, tspan, sparse=true, jac=true)
-sol = solve(prob)
++sol = solve(prob)
 plot(sol)
 
 ## ## ## ## ## ## ## ## ## ## ## ## ## ##

@@ -1,0 +1,78 @@
+\documentclass{standalone}
+%% Import Packages for Article
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage[margin = 1in]{geometry}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\usepackage{cancel}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage{pict2e}
+\usepackage{adjustbox}
+\usepackage{soul}
+\usepackage{verbatim}
+\usepackage{datetime}
+\usepackage{wasysym}
+\usepackage{bondgraphs}
+\usepackage{tikz-dimline}
+\usepackage{mathtools}
+\usepackage{empheq}
+\usepackage[makestderr]{pythontex}
+
+
+\graphicspath{{./Images/}}
+\pgfplotsset{compat=newest}
+\usepgfplotslibrary{groupplots}
+\usepgfplotslibrary{polar}
+\usepgfplotslibrary{smithchart}
+\usepgfplotslibrary{statistics}
+\usepgfplotslibrary{dateplot}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{intersections}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes.geometric, arrows}
+\usetikzlibrary{calc}
+\DeclareUnicodeCharacter{2212}{-}
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+
+% \newcommand{\drawbond}[5]{\draw[] (#1) edge[e_#5,effort = {\rotatebox{#2}{e$_{#3}$}},flow = {\rotatebox{#2}{f$_{#3}$}}] (#4);}
+
+\newcommand{\drawbond}[5]{\draw[e_#5] (#1) edge[bond,effort = {\rotatebox{#2}{e$_{#3}$}},flow = {\rotatebox{#2}{f$_{#3}$}}] (#4);}
+
+\begin{document}
+
+\begin{bondgraph}
+    \node[] (se) {Se: $F(t)$};
+    \node[right= 1 of se] (1cx) {1$_x^c$};
+    \drawbond{se}{0}{1}{1cx}{out};
+    \node[below = 1 of 1cx] (R) {R:$b_1$};
+    \drawbond{1cx}{90}{14}{R}{in};
+    \node[above = 1 of 1cx] (Imc) {I:$m_c$};
+    \drawbond{1cx}{270}{2}{Imc}{out};
+    \node[right = 1 of 1cx] (0x) {0$_x$};
+    \drawbond{0x}{0}{3}{1cx}{out};
+    \node[right = 1 of 0x] (1px) {1$_x^p$};
+    \drawbond{1px}{0}{4}{0x}{out};
+    \node[right = 1 of 1px] (Ipx) {I:$m_p$};
+    \drawbond{1px}{0}{5}{Ipx}{in};
+    \node[below = 1 of 0x] (mtf1) {MTF: $l\cos{\theta}$};
+    \drawbond{mtf1}{270}{6}{0x}{in};
+    \node[below = 1 of mtf1] (1pw) {1$_\omega^p$};
+    \drawbond{1pw}{270}{7}{mtf1}{in};
+    \node[left = 1 of 1pw] (Ipj) {I:$J$};
+    \drawbond{1pw}{0}{8}{Ipj}{out};
+    \node[right = 1 of 1pw] (mtf2) {MTF:$l\sin{\theta}$};
+    \drawbond{1pw}{0}{9}{mtf2}{in};
+    \node[right = 1 of mtf2] (0y) {0$_y$};
+    \drawbond{mtf2}{0}{10}{0y}{in};
+    \node[right = 1 of 0y] (1py) {1$_y^p$};
+    \drawbond{0y}{0}{11}{1py}{in};
+    \node[right = 1 of 1py] (Impy) {I:$m_p$};
+    \drawbond{1py}{0}{13}{Impy}{in};
+    \node[above = 1 of 1py] (Sempg) {Se: $m_p g$};
+    \drawbond{1py}{270}{12}{Sempg}{in};
+\end{bondgraph}
+\end{document}
