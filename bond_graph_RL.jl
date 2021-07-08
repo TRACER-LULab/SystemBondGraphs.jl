@@ -152,11 +152,6 @@ Random.seed!(env::CartPoleEnv, seed) = Random.seed!(env.rng, seed)
 function RL.Experiment(
     ::Val{:JuliaRL},
     ::Val{:BasicDQN},
-        J₊p => 0.0,    
-        mc₊p => 0.0,
-        x => 0.0,
-        θ => θ0
-        ] |> Dict
     ::Val{:CartPoleBG},
     ::Nothing;
     seed=123,
