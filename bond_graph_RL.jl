@@ -164,9 +164,6 @@ function RL.Experiment(
         policy=QBasedPolicy(
             learner=BasicDQNLearner(
                 approximator=NeuralNetworkApproximator(
-        policy=QBasedPolicy(
-            learner=BasicDQNLearner(
-                approximator=NeuralNetworkApproximator(
                     model=Chain(
                         Dense(ns, 128, relu; init=glorot_uniform(rng)),
                         Dense(128, 128, relu; init=glorot_uniform(rng)),
@@ -209,7 +206,7 @@ anim = @animate for i ∈ eachindex(ex.env.de_env.sol.t)
         [0.0, cos(ex.env.de_env.sol[θ][i]) * 0.5], 
         xlims=(-1.5, 1.5),
     ylims=(-1.5, 1.5),
-        title="t="*string(round(ex.env.de_env.sol.t[i], digits = 3)),
+        title="t=" * string(round(ex.env.de_env.sol.t[i], digits=3)),
         linewidth=3,
         aspect_ratio=1
     )
