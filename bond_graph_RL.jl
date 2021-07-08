@@ -1,3 +1,6 @@
+using Pkg
+Pkg.activate("venv")
+Pkg.instantiate()
 ## Package Imports
 using Plots 
 using ReinforcementLearning
