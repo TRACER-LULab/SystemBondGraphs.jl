@@ -89,6 +89,6 @@ resolve_derivative_causality!(cart_pole)
 simplify_model!(cart_pole)
 println("Done Simplifying Model")
 ## 
-@tagsave datadir("ODEModel", "Cart Pole", savename(cart_pole.model, "jld2"))
+@tagsave datadir("ODEModel", "Cart Pole", "cart_pole_model.jld2")
 # save_object("cart_pole.jld2", cart_pole.model)
 .
