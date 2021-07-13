@@ -1,6 +1,10 @@
+## Setup Project
 using DrWatson
 @quickactivate "Bond Graph Modeling"
 DrWatson.greet()
+using Pkg
+Pkg.activate(".")
+Pkg.instantiate()
 ## Imports
 using BondGraphs
 using Symbolics
@@ -88,4 +92,8 @@ println("Done Updating Equations")
 resolve_derivative_causality!(cart_pole)
 simplify_model!(cart_pole)
 println("Simplified Model")
-# save_object("cart_pole.jld2", cart_pole.model)
+##
+@tagsave(
+    datadir("sims", "ODEModels", "cart_pole_model.jld2"),
+    Dict("model" => cart_pole.model)
+)
