@@ -2,6 +2,7 @@ name = "Bond Graph Modeling"
 authors = ["Carson Farmer"]
 
 [deps]
+BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 BondGraphs = "ee71fe37-b8ff-49c8-a6aa-778db78e7015"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
