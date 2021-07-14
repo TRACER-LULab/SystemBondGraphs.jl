@@ -40,6 +40,7 @@ function createEnv(θ0, mass_pole, mass_cart, pole_length, gravity, dt)
         r1₊R => 0.01,
         in₊Se => 0.0
         ] |> Dict
+    
     prob = ODAEProblem(model, u0, (0.0, 10.0), ps, dt=dt)
     return init(prob, Tsit5(), reltol=1e-6)
 end
@@ -200,8 +201,8 @@ ex = E`JuliaRL_BasicDQN_CartPoleBG`
 run(ex)
 ## Save
 @tagsave(
-    datadir("sims", "NNModel", "RL_BasicDQN_CartPole.bson")
-    Dict("model"=>ex.policy.agent.policy)
+    datadir("sims", "NNModel", "RL_BasicDQN_CartPole.bson"),
+    Dict("model" => ex.policy.policy)
 )
 ##
 plot(ex.hook.rewards)
@@ -213,7 +214,7 @@ anim = @animate for i ∈ eachindex(ex.env.de_env.sol.t)
         [ex.env.de_env.sol[x][i], ex.env.de_env.sol[x][i] - sin(ex.env.de_env.sol[θ][i]) * 0.5],
         [0.0, cos(ex.env.de_env.sol[θ][i]) * 0.5], 
         xlims=(-1.5, 1.5),
-    ylims=(-1.5, 1.5),
+        ylims=(-1.5, 1.5),
         title="t=" * string(round(ex.env.de_env.sol.t[i], digits=3)),
         linewidth=3,
         aspect_ratio=1
