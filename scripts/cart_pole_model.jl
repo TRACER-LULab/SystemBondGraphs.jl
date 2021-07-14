@@ -98,5 +98,5 @@ println("Simplified Model")
     Dict("model" => cart_pole.model, 
          "state_vars" => states(cart_pole.model), 
          "params" => parameters(cart_pole.model),
-         "independent_vars" => cart_pole.model.iv)
+         "independent_vars" => [cart_pole.model.iv])
 )
