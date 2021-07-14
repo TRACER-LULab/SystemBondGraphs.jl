@@ -95,5 +95,8 @@ println("Simplified Model")
 ##
 @tagsave(
     datadir("sims", "ODEModels", "cart_pole_model.jld2"),
-    Dict("model" => cart_pole.model)
+    Dict("model" => cart_pole.model, 
+         "state_vars" => states(cart_pole.model), 
+         "params" => parameters(cart_pole.model),
+         "independent_vars" => cart_pole.model.iv)
 )
