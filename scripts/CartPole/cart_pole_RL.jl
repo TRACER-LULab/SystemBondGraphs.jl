@@ -1,6 +1,5 @@
 using DrWatson
-@quickactivate "Bond Graph Modeling"
-DrWatson.greet()
+@quickactivate "BondGraphModeling"
 using Pkg
 Pkg.activate(".")
 Pkg.instantiate()
@@ -19,13 +18,13 @@ using UnPack
 ## Load BondGraph Model and create symbolic variables
 @unpack model, independent_vars, state_vars, params = load(datadir("sims", "ODEModels", "cart_pole_model.jld2"))
 ## Recreate Independent Variables 
-command = "@variables "*string(map(x->string(x)*" ", independent_vars)...)
+command = "@variables " * string(map(x -> string(x) * " ", independent_vars)...)
 eval(Meta.parse(command))
 ## Recreate State Variables
-command = "@variables "*string(map(x->string(x)*" ", state_vars)...)
+command = "@variables " * string(map(x -> string(x) * " ", state_vars)...)
 eval(Meta.parse(command))
 ## Recreate parameters
-command = "@parameters "*string(map(x->string(x)*" ", params)...)
+command = "@parameters " * string(map(x -> string(x) * " ", params)...)
 eval(Meta.parse(command))
 ## 
 function createEnv(θ0, mass_pole, mass_cart, pole_length, gravity, dt)

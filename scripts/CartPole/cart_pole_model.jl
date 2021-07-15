@@ -1,7 +1,6 @@
 ## Setup Project
 using DrWatson
-@quickactivate "Bond Graph Modeling"
-DrWatson.greet()
+@quickactivate "BondGraphModeling"
 using Pkg
 Pkg.activate(".")
 Pkg.instantiate()

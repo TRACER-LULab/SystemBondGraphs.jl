@@ -1,4 +1,4 @@
-name = "Bond Graph Modeling"
+name = "BondGraphModeling"
 authors = ["Carson Farmer"]
 
 [deps]
