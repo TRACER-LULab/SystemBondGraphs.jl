@@ -1,0 +1,24 @@
+```julia; echo=false; result="hidden"
+using DrWatson
+@quickactivate "Bond Graph Modeling"
+DrWatson.greet()
+using Pkg
+Pkg.activate(".")
+Pkg.instantiate()
+```
+
+---
+Title: Genetic Programming for the Eigenvbalue placement of mechatronic systems
+Author: Carson Farmer
+Date: 15 July 2021
+---
+
+# Introduction
+
+```julia
+using BondGraphs
+using ModelingToolkit
+using DifferentialEquations
+using LightGraphs
+```
+

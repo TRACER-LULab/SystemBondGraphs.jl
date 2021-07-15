@@ -22,6 +22,7 @@ SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+Weave = "44d3d7a6-8a23-5bf8-98c5-b353f8df5ec9"
 
 [compat]
 julia = "1.6.1"
