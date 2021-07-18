@@ -66,7 +66,7 @@ mutable struct BondGraph
 end
 
 
-# """
+# """metagraph.jl
 # Creation of an empty bond graph created with the specification of an independent variable
 
 # # Arguments
@@ -287,7 +287,7 @@ function add_1J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, length(BG.graph.graph.fadjlist), :name, name)
     for j ∈ keys(elements)
-        add_edge!(mg, mg[name, :name], mg[j, :name])
+        add_edge!(BG.graph, BG.graph[name, :name], BG.graph[j, :name])
     end
     nothing
 end

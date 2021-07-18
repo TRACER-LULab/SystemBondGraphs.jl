@@ -31,3 +31,4 @@ add_1J!(msd, Dict(
 name = msd.graph.vprops
 name = map(x -> "\$" * string(name[x][:name]) * "\$", 1:length(values(msd.graph.vprops)))
 plt = TikzGraphs.plot(msd.graph.graph, name) |> display
+## e = C * d^a(f)/dt^a
