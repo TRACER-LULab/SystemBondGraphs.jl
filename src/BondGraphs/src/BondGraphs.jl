@@ -15,7 +15,7 @@ export add_Bond!
 export add_R!
 export add_C!
 export add_I!
-# export add_M!
+export add_M!
 export add_Se!
 export add_Sf!
 export add_TF!
@@ -23,6 +23,8 @@ export add_GY!
 export add_MTF!
 export add_1J!
 export add_0J!
+export add_C_multiport!
+export add_I_multiport!
 export generate_model!
 export simplify_model!
 export get_parameters!
@@ -65,13 +67,7 @@ mutable struct BondGraph
     graph::MetaGraph{Int64,Float64}
 end
 
-
-# """metagraph.jl
-# Creation of an empty bond graph created with the specification of an independent variable
-
-# # Arguments
-# - `independent_variable::Symbol`: The independent variable for which the system is solved w.r.t
-# """
+## BondGraph constructor
 function BondGraph(independent_variable)
     empty_model = ODESystem(Equation[], independent_variable, [], [], systems=[])
     mg = MetaGraph(SimpleGraph())
@@ -88,9 +84,6 @@ function add_Bond!(BG::BondGraph, name)
 end
 
 ## Add R_element to Model
-"""
-add_R! with two arguments assumes that the element is linear
-"""
 function add_R!(BG::BondGraph, name; causality=false)
     @variables e(BG.model.iv) f(BG.model.iv)
     @parameters R
@@ -111,7 +104,7 @@ function add_R!(BG::BondGraph, Φr, params; causality=false)
     nothing
 end
 
-# ## Add C-element to Model
+## Add C-element to Model
 function add_C!(BG::BondGraph, name; causality=false)
     @variables e(BG.model.iv) f(BG.model.iv) q(BG.model.iv)
     @parameters C
@@ -124,7 +117,6 @@ function add_C!(BG::BondGraph, name; causality=false)
     BG.elements[name] =  Element(:C, sys, [sys.q], causality)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, length(BG.graph.graph.fadjlist), :name, name)
-    # push!(BG.state_vars, BG.elements[name].q)
     nothing
 end
 function add_C!(BG::BondGraph, Φc, params, name; causality=false)
@@ -139,11 +131,10 @@ function add_C!(BG::BondGraph, Φc, params, name; causality=false)
     BG.elements[name] = Element(:C, sys, [sys.q], causality)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, length(BG.graph.graph.fadjlist), :name, name)
-    # push!(BG.state_vars, BG.elements[name].q)
     nothing
 end
 
-# ## Add I-element to model
+## Add I-element to model
 function add_I!(BG::BondGraph, name; causality=false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv)
     @parameters I
@@ -156,7 +147,6 @@ function add_I!(BG::BondGraph, name; causality=false)
     BG.elements[name] = Element(:I, sys, [sys.p], causality)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, length(BG.graph.graph.fadjlist), :name, name)
-    # push!(BG.state_vars, BG.elements[name].p)
     nothing
 end
 function add_I!(BG::BondGraph, Φi, params, name; causality=false)
@@ -170,38 +160,35 @@ function add_I!(BG::BondGraph, Φi, params, name; causality=false)
     BG.elements[name] = Element(:I, sys, [sys.p], causality)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, length(BG.graph.graph.fadjlist), :name, name)
-    # push!(BG.state_vars, BG.elements[name].p)
     nothing
 end
 
-## Add Memrsistive element
-function add_M!(BG::BondGraph, name)
+## Add M-element to model
+function add_M!(BG::BondGraph, name; causality=false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv) q(BG.model.iv)
     @parameters M
     D = Differential(BG.model.iv)
     eqns = [
             D(p) ~ e,
             D(q) ~ f,
-            0.0 ~ p - M * q
+            p ~ M * q
             ]
-    BG.elements[name] = ODESystem(eqns, BG.model.iv, [e, f, p, q], [M], name=name)
-    push!(BG.state_vars, BG.elements[name].p)
-    push!(BG.state_vars, BG.elements[name].q)
+    sys = ODESystem(eqns, BG.model.iv, [e, f, p, q], [M], name=name)
+    BG.elements[name] = Element(:M, sys, [sys.p], causality)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, length(BG.graph.graph.fadjlist), :name, name)
-    nothing
+    nothing 
 end
-function add_M!(BG::BondGraph, Φm, name)
+function add_M!(BG::BondGraph, Φm, params, name; causality=false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv) q(BG.model.iv)
     D = Differential(BG.model.iv)
     eqns = [
             D(p) ~ e,
             D(q) ~ f,
-            0.0 ~ p - Φm(p, q, BG.model.iv)
+            p ~ Φi(p, q, BG.model.iv) # Integral Causality Form
             ]
-    BG.elements[name] = ODESystem(eqns, BG.model.iv, [e, f, p, q], [], name=name)
-    push!(BG.state_vars, BG.elements[name].p)
-    push!(BG.state_vars, BG.elements[name].q)
+    sys = ODESystem(eqns, BG.model.iv, [e, f, p, q], [], name=name)
+    BG.elements[name] = Element(:M, sys, [sys.p], causality)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, length(BG.graph.graph.fadjlist), :name, name)
     nothing
@@ -331,7 +318,7 @@ function add_TF!(BG::BondGraph, m, elements::Dict{Symbol,Bool}, name)
     nothing
 end
 
-# Add Gyrator to Model Function add_TF(BG, m, elements::Dict{Symbol, Bool},name)
+## Add Gyrator to Model Function add_TF(BG, m, elements::Dict{Symbol, Bool},name)
 function add_GY!(BG, r, elements::Dict{Symbol,Bool}, name)
     # @parameters r
     elems = collect(keys(elements))
@@ -348,7 +335,7 @@ function add_GY!(BG, r, elements::Dict{Symbol,Bool}, name)
     nothing
 end
 
-# Add MTF - Modulated Transformed Modulus
+## Add MTF - Modulated Transformed Modulus
 function add_MTF!(BG::BondGraph, m, states, ps, elements, name)
     # @parameters m
     elems = map(x -> x.first, elements)
@@ -366,17 +353,59 @@ function add_MTF!(BG::BondGraph, m, states, ps, elements, name)
     nothing
 end
 
+## Create C- multiport
+function add_C_multiport!(BG::BondGraph, elements, parameters; ϕi=(e, q, params) -> [], ϕk=(e, q, params) -> [])
+    # Do the usual setup
+    D = Differential(BG.model.iv)
+    # Sort Elements 
+    𝐪_1j = filter(x -> x.second == false, elements)
+    j = length(𝐪_1j)
+    𝐞_jp1n = filter(x -> x.second == true, elements)
+    n = length(elements)
+    # Repack elements based on (7.20) & (7.21)
+    elements = [𝐪_1j;𝐞_jp1n]
+    # Create variable vectors 
+    @variables 𝐪[1:length(elements)](BG.model.iv)
+    𝐞 = map(i -> BG.elements[elements[i].first].sys.e, eachindex(elements))
+    # Create Derivative Relationships for displacement d/dt(q_i) = f_i
+    deriv_eqns = map(i -> D(𝐪[i]) ~ BG.elements[elements[i].first].sys.f, eachindex(elements))
+    # Create Relationships for (7.20) e_i = ϕ_i(q_1j, e_jn, p)
+    𝐞_1j = ϕi(𝐞[j + 1:n], 𝐪[1:j],  parameters)
+    e_eqns = map(i -> BG.elements[elements[i].first].sys.e ~ 𝐞_1j[i], 1:j)
+    𝐪_jn = ϕk(𝐞[j + 1:n], 𝐪[1:j], parameters)
+    q_eqns = map(i -> 𝐪[j + i] ~ 𝐪_jn[i], 1:n - j)
+    return [deriv_eqns; e_eqns; q_eqns]
+end
+
+## Create I-multiport
+function add_I_multiport!(BG::BondGraph, elements, parameters; ϕi=(p, f, params) -> [], ϕk=(p, f, params) -> [])
+    # Do the usual setup
+    D = Differential(BG.model.iv)
+    # Sort Elements 
+    𝐩_1j = filter(x -> x.second == false, elements)
+    j = length(𝐩_1j)
+    𝐟_jp1n = filter(x -> x.second == true, elements)
+    n = length(elements)
+    # Repack elements based on (7.20) & (7.21)
+    elements = [𝐩_1j;𝐟_jp1n]
+    # Create variable vectors 
+    @variables 𝐩[1:length(elements)](BG.model.iv)
+    𝐟 = map(i -> BG.elements[elements[i].first].sys.f, eachindex(elements))
+    # Create Derivative Relationships for displacement d/dt(q_i) = f_i
+    deriv_eqns = map(i -> D(𝐩[i]) ~ BG.elements[elements[i].first].sys.e, eachindex(elements))
+    # Create Relationships for (7.20) e_i = ϕ_i(q_1j, e_jn, p)
+    𝐟_1j = ϕi(𝐩[1:j], 𝐟[j + 1:n], parameters)
+    e_eqns = map(i -> BG.elements[elements[i].first].sys.f ~ 𝐟_1j[i], 1:j)
+    𝐩_jn = ϕk(𝐩[1:j], 𝐟[j + 1:n], parameters)
+    q_eqns = map(i -> 𝐩[j + i] ~ 𝐩_jn[i], 1:n - j)
+    return [deriv_eqns; e_eqns; q_eqns]
+end
+
 ## Create ODE System From Bond Graph Construction 
 function generate_model!(BG::BondGraph)
-    # elements = collect(values(BG.elements))
-    # elements = map(x -> x.sys, elements)
     junctions = collect(values(BG.junctions))
     junc_eqns = reduce(vcat, map(x -> equations(x.sys), junctions))
     elem_sys = map(x -> x.sys, collect(values(BG.elements)))
-    # state_vars = reduce(vcat,map(x->states(x), elem_sys))
-    # elem_sys = reduce(vcat, elem_sys)
-    # junc_sys = map(x -> equations(x.sys), collect(values(BG.junctions)))
-    # junc_sys = reduce(vcat, junc_sys)
     BG.model = ODESystem(junc_eqns, BG.model.iv, [], [], systems=elem_sys)
 end
 ## Get parameters
