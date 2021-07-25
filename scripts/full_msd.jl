@@ -1,16 +1,14 @@
+using DrWatson
+@quickactivate "BondGraphModeling"
 using Pkg
-Pkg.activate("venv")
+Pkg.activate(".")
+Pkg.instantiate()
+##
 using BondGraphs
 using ModelingToolkit
 using DifferentialEquations
 using Plots
 using Symbolics
-using SymbolicUtils
-using Unitful
-using MonteCarloMeasurements
-using Turing
-using UnitfulRecipes
-using StatsPlots
 display("Imports Finished")
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## 
 ##  Linear Mass Spring Damper Systems  ## 
@@ -47,7 +45,7 @@ C = [1 1; 1 1]
 D = [0; 0]
 
 ẋ = Ax + Bu
-y = Cx+Du
+y = Cx + Du
 tf = transfer_function(msd, ps, C, D);
 G = eval(tf[1])
 abs.(G(im))

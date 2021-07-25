@@ -263,14 +263,15 @@ end
 ## Add 1-junction to model
 function add_1J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name)
     elems = collect(keys(elements))
+    systems = map(x -> BG.elements[x].sys, elems)
     eqns = [
-            0 ~ sum(x -> BG.elements[x].sys.e * (-1).^(elements[x]), keys(elements)) # Sum of all flows is 0
+            0 ~ sum(x -> BG.elements[x].sys.e * (-1).^(!elements[x]), keys(elements)) # Sum of all flows is 0
             ]
     for i ∈ 1:length(elems) - 1
         push!(eqns, BG.elements[elems[i]].sys.f ~ BG.elements[elems[i + 1]].sys.f) # effort equality
     end
-    systems = map(x -> BG.elements[x].sys, elems)
-    BG.junctions[name] = Junction(:J1, elements, ODESystem(eqns, BG.model.iv), [])
+    sys = ODESystem(eqns, BG.model.iv)
+    BG.junctions[name] = Junction(:J1, elements, sys, [])
     add_vertex!(BG.graph)
     set_prop!(BG.graph, length(BG.graph.graph.fadjlist), :name, name)
     for j ∈ keys(elements)
@@ -296,7 +297,6 @@ function add_0J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name)
     for j ∈ keys(elements)
         add_edge!(mg, mg[name, :name], mg[j, :name])
     end
-    nothing
     nothing
 end
 
@@ -354,7 +354,7 @@ function add_MTF!(BG::BondGraph, m, states, ps, elements, name)
 end
 
 ## Create C- multiport
-function add_C_multiport!(BG::BondGraph, elements, parameters; ϕi=(e, q, params) -> [], ϕk=(e, q, params) -> [])
+function add_C_multiport!(BG::BondGraph, elements, parameters, name; ϕi=(e, q, params) -> [], ϕk=(e, q, params) -> [])
     # Do the usual setup
     D = Differential(BG.model.iv)
     # Sort Elements 
@@ -366,19 +366,26 @@ function add_C_multiport!(BG::BondGraph, elements, parameters; ϕi=(e, q, params
     elements = [𝐪_1j;𝐞_jp1n]
     # Create variable vectors 
     @variables 𝐪[1:length(elements)](BG.model.iv)
+    # @variables 𝐟[1:length(elements)](BG.model.iv)
+    # @variables 𝐞[1:length(elements)](BG.model.iv)
     𝐞 = map(i -> BG.elements[elements[i].first].sys.e, eachindex(elements))
     # Create Derivative Relationships for displacement d/dt(q_i) = f_i
     deriv_eqns = map(i -> D(𝐪[i]) ~ BG.elements[elements[i].first].sys.f, eachindex(elements))
     # Create Relationships for (7.20) e_i = ϕ_i(q_1j, e_jn, p)
     𝐞_1j = ϕi(𝐞[j + 1:n], 𝐪[1:j],  parameters)
     e_eqns = map(i -> BG.elements[elements[i].first].sys.e ~ 𝐞_1j[i], 1:j)
-    𝐪_jn = ϕk(𝐞[j + 1:n], 𝐪[1:j], parameters)
-    q_eqns = map(i -> 𝐪[j + i] ~ 𝐪_jn[i], 1:n - j)
-    return [deriv_eqns; e_eqns; q_eqns]
+    𝐪_jp1n = ϕk(𝐞[j + 1:n], 𝐪[1:j], parameters)
+    q_eqns = map(i -> 𝐪[j + i] ~ 𝐪_jp1n[i], 1:n - j)
+    eqns = [deriv_eqns; e_eqns; q_eqns]
+    eqns = convert(Vector{Equation}, eqns)
+    subsys = map(i -> BG.elements[elements[i].first].sys, eachindex(elements))
+    sys = compose(ODESystem(eqns, BG.model.iv, collect(𝐪), [], name=name), subsys)
+    BG.elements[name] = Element(:C, sys, collect(𝐪), false)
+    nothing
 end
 
 ## Create I-multiport
-function add_I_multiport!(BG::BondGraph, elements, parameters; ϕi=(p, f, params) -> [], ϕk=(p, f, params) -> [])
+function add_I_multiport!(BG::BondGraph, elements, parameters; ϕi=(p, f, params) -> [], ϕk=(p, f, params) -> [], name)
     # Do the usual setup
     D = Differential(BG.model.iv)
     # Sort Elements 
@@ -405,8 +412,12 @@ end
 function generate_model!(BG::BondGraph)
     junctions = collect(values(BG.junctions))
     junc_eqns = reduce(vcat, map(x -> equations(x.sys), junctions))
+    junc_sys = reduce(vcat, map(x -> x.sys, junctions))
+    
     elem_sys = map(x -> x.sys, collect(values(BG.elements)))
-    BG.model = ODESystem(junc_eqns, BG.model.iv, [], [], systems=elem_sys)
+
+    BG.model = compose(ODESystem(junc_eqns, BG.model.iv, [], []), [elem_sys; junc_sys])
+    nothing
 end
 ## Get parameters
 function get_parameters!(BG::BondGraph)
