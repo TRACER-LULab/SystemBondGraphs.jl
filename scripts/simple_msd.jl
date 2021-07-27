@@ -12,6 +12,7 @@ using MetaGraphs
 using GLMakie
 using GraphMakie
 using LaTeXStrings
+Makie.inline!(true)
 ## 
 @parameters t
 msd = BondGraph(t)
@@ -21,16 +22,25 @@ add_C!(msd, :C_1)
 add_I!(msd, :I_1)
 add_Se!(msd, :Se)
 add_1J!(msd, Dict([
-    :R_1 => true, 
-    :C_1 => true, 
-    :I_1 => true, 
-    :Se => false]),
+    :R_1 => false, 
+    :C_1 => false, 
+    :I_1 => false, 
+    :Se => true]),
     :J1)
 ##
 generate_model!(msd)
-##
-names = [latexstring(msd.graph.vprops[i][:name]) for i in 1:length(msd.graph.vprops)]
-f, ax, p = graphplot(g, nlabels=names)
-offsets = 0.02 * (p[:node_positions][] .- p[:node_positions][][1])
-p.nlabels_offset[] = offsets
-autolimits!(ax)
+simplify_model!(msd)
+## 
+u0 = [
+    msd[:C_1].q => 0.0,
+    msd[:I_1].p => 0.0
+    ]
+ps = [
+    msd[:R_1].R => 1.0,
+    msd[:C_1].C => 1.0,
+    msd[:I_1].I => 1.0,
+    msd[:Se].Se => 1.0
+    ]
+tspan = (0.0, 10.0)
+prob = ODAEProblem(msd.model, u0, tspan, ps)
+sol = solve(prob, Tsit5())
