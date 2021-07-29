@@ -16,17 +16,18 @@ Makie.inline!(true)
 ## 
 @parameters t
 msd = BondGraph(t)
-##
 add_R!(msd, :R_1) 
 add_C!(msd, :C_1)
 add_I!(msd, :I_1)
 add_Se!(msd, :Se)
-add_1J!(msd, Dict([
+add_1J!(msd,
+    Dict(
     :R_1 => false, 
     :C_1 => false, 
     :I_1 => false, 
-    :Se => true]),
-    :J1)
+    :Se => true
+    ),
+    :J1);
 ##
 generate_model!(msd)
 simplify_model!(msd)

@@ -1,6 +1,6 @@
 module BondGraphs
 
-using Base:Real
+using Base:Real, associate_julia_struct
 using Symbolics:Symbolic
 using DifferentialEquations
 using ModelingToolkit
@@ -28,7 +28,7 @@ export BondGraph,
         add_I_multiport!,
         generate_model!,
         simplify_model!,
-        get_parameters!,
+        # get_parameters!,
         get_states,
         set_conditions!,
         generate_ODE,
@@ -43,38 +43,44 @@ export BondGraph,
 """
 Structure of a bond graph which consists of the ODAE model, (non)linear elements, multi-ports, and initial Conditions
 """
-struct Junction
-    type::Symbol
-    elements::Dict{Symbol,Bool}
-    sys::ODESystem
-    parameters::Vector{Any}
-end
+# struct Junction
+#     type::Symbol
+#     elements::Dict{Symbol,Bool}
+#     sys::ODESystem
+#     parameters::Vector{Any}
+# end
 
-struct Element
-    type::Symbol
-    sys::ODESystem
-    state_var::Vector{Num}
-    causality::Bool
-end
+# struct Element
+#     type::Symbol
+#     sys::ODESystem
+#     state_var::Vector{Num}
+#     causality::Bool
+# end
+
+# mutable struct BondGraph
+#     model::ODESystem
+#     elements::Dict{Symbol,Element}
+#     inputs::Vector{Sym{Real,nothing}}
+#     junctions::Dict{Symbol,Junction}
+#     initial_state::Dict{Term{Real,Nothing},Number}
+#     parameters::Vector{Sym}
+#     graph::MetaGraph{Int64,Float64}
+# end
 
 mutable struct BondGraph
+    graph::MetaGraph
     model::ODESystem
-    elements::Dict{Symbol,Element}
-    inputs::Vector{Sym{Real,nothing}}
-    junctions::Dict{Symbol,Junction}
-    initial_state::Dict{Term{Real,Nothing},Number}
-    parameters::Vector{Sym}
-    graph::MetaGraph{Int64,Float64}
 end
 
 Base.getindex(BG::BondGraph, node::Symbol) = get_prop(BG.graph, BG.graph[node, :name], :sys)
 
 ## BondGraph constructor
 function BondGraph(independent_variable)
-    empty_model = ODESystem(Equation[], independent_variable, [], [], systems = []; name = :model)
-    mg = MetaGraph(SimpleGraph())
+    mg = MetaGraph()
     set_indexing_prop!(mg, :name)
-    return BondGraph(empty_model, Dict([]), [], Dict([]), Dict([]), [], mg)
+    sys = ODESystem(Equation[], independent_variable)
+    return BondGraph(mg, sys)
+    # return BondGraph(empty_model, Dict([]), [], Dict([]), Dict([]), [], mg)
 end
 
 include("OnePorts.jl")
@@ -118,10 +124,10 @@ function generate_model!(BG::BondGraph)
     nothing
 end
 ## Get parameters
-function get_parameters!(BG::BondGraph)
-    BG.parameters = map(x -> x => 0.0, parameters(BG.model)) |> Dict
-    BG.parameters = keys(BG.parameters) .=> values(BG.parameters)
-end
+# function get_parameters!(BG::BondGraph)
+#     BG.parameters = map(x -> x => 0.0, parameters(BG.model)) |> Dict
+#     BG.parameters = keys(BG.parameters) .=> values(BG.parameters)
+# end
 ## Simplify Bond Graph System 
 simplify_model!(BG::BondGraph) = BG.model = tearing(structural_simplify(BG.model))
 # ## Get Independent Variables of system

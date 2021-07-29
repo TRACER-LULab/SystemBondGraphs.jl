@@ -8,7 +8,7 @@ function add_TF!(BG::BondGraph, m, in, out, name)
     add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])
 
     eqns = [
-        0 ~ BG[in].e * - m * BG[out].e, 
+        0 ~ BG[in].e - m * BG[out].e, 
         0 ~ m * BG[in].f - BG[out].f
     ]
 

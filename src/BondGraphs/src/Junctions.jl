@@ -5,6 +5,7 @@ function add_1J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name::Symbol)
     node_index = nv(BG.graph)
     set_prop!(BG.graph, node_index, :name, name)
     for j ∈ keys(elements)
+        @show j
         add_edge!(BG.graph, BG.graph[name, :name], BG.graph[j, :name])
     end
     eqns = [

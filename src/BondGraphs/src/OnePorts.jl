@@ -2,7 +2,7 @@
 function add_Bond!(BG::BondGraph, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     sys = ODESystem(Equation[], BG.model.iv, [e, f], [], name = name)
-    BG.elements[name] = Element(:B, sys, [], false)   
+    # BG.elements[name] = Element(:B, sys, [], false)   
     add_vertex!(BG.graph)
     props = Dict(
                 :type => :B,

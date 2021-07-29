@@ -136,7 +136,7 @@ function resolve_derivative_causality!(BG::BondGraph)
     diff_indexes = []
     implicit_eqns = []
     causal_nodes = filter_vertices(BG.graph, :causality, :true)
-    # causal_names = map(v->get_prop(BG.graph, v, :name), causal_nodes)
+    # causal_names = map(v->get_prop(BG, v, :name), causal_nodes)
     for node ∈ causal_nodes
         name = get_prop(BG.graph, node, :name)
         @show name
@@ -169,4 +169,5 @@ function resolve_derivative_causality!(BG::BondGraph)
     end
     map(i -> eqns[diff_indexes[i]] = implicit_eqns[i], eachindex(implicit_eqns))
     BG.model = ODESystem(eqns, BG.model.iv, states(BG.model), parameters(BG.model))
+    nothing
 end

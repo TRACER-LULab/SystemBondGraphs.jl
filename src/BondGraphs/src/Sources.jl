@@ -5,12 +5,15 @@ function add_Se!(BG::BondGraph, name)
     eqns = [0 ~ e - Se]
     sys = ODESystem(eqns, BG.model.iv, [e, f], [Se], name = name)
     add_vertex!(BG.graph)
-    node_index = length(BG.graph.graph.fadjlist)
-    set_prop!(BG.graph, node_index, :name, name)
-    set_prop!(BG.graph, node_index, :type, :Se)
-    set_prop!(BG.graph, node_index, :sys, sys)
-    set_prop!(BG.graph, node_index, :causality, false)
-    set_prop!(BG.graph, node_index, :state_var, [])
+    node_index = nv(BG.graph)
+    set_prop!(BG.graph, nv(BG.graph), :name, name)
+    props = Dict(
+        :type => :Se,
+        :sys => sys,
+        :causality => false,
+        :state_var => [sys.e]
+    )
+    set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end
 
@@ -18,14 +21,16 @@ function add_Se!(BG::BondGraph, Se::Number, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     eqns = [0 ~ e - Se]
     sys = ODESystem(eqns, BG.model.iv, [e, f], [Se], name = name)
-    push!(BG.inputs, parameters(sys))
     add_vertex!(BG.graph)
-    node_index = length(BG.graph.graph.fadjlist)
-    set_prop!(BG.graph, node_index, :name, name)
-    set_prop!(BG.graph, node_index, :type, :Se)
-    set_prop!(BG.graph, node_index, :sys, sys)
-    set_prop!(BG.graph, node_index, :causality, false)
-    set_prop!(BG.graph, node_index, :state_var, [])
+    node_index = nv(BG.graph)
+    set_prop!(BG.graph, nv(BG.graph), :name, name)
+    props = Dict(
+        :type => :Se,
+        :sys => sys,
+        :causality => false,
+        :state_var => [sys.e]
+    )
+    set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end
 
@@ -34,12 +39,15 @@ function add_Se!(BG::BondGraph, Se, params::Vector{}, name)
     eqns = [0 ~ e - Se(BG.model.iv, params)]
     sys = ODESystem(eqns, BG.model.iv, [e, f], params, name = name)
     add_vertex!(BG.graph)
-    node_index = length(BG.graph.graph.fadjlist)
-    set_prop!(BG.graph, node_index, :name, name)
-    set_prop!(BG.graph, node_index, :type, :Se)
-    set_prop!(BG.graph, node_index, :sys, sys)
-    set_prop!(BG.graph, node_index, :causality, false)
-    set_prop!(BG.graph, node_index, :state_var, [])
+    node_index = nv(BG.graph)
+    set_prop!(BG.graph, nv(BG.graph), :name, name)
+    props = Dict(
+        :type => :Se,
+        :sys => sys,
+        :causality => false,
+        :state_var => [sys.e]
+    )
+    set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end
 
@@ -50,12 +58,15 @@ function add_Sf!(BG::BondGraph, name)
     eqns = [0 ~ f - Sf]
     sys = ODESystem(eqns, BG.model.iv, [e, f], [Sf], name = name)
     add_vertex!(BG.graph)
-    node_index = length(BG.graph.graph.fadjlist)
-    set_prop!(BG.graph, node_index, :name, name)
-    set_prop!(BG.graph, node_index, :type, :Sf)
-    set_prop!(BG.graph, node_index, :sys, sys)
-    set_prop!(BG.graph, node_index, :causality, false)
-    set_prop!(BG.graph, node_index, :state_var, [])
+    node_index = nv(BG.graph)
+    set_prop!(BG.graph, nv(BG.graph), :name, name)
+    props = Dict(
+        :type => :Sf,
+        :sys => sys,
+        :causality => false,
+        :state_var => [sys.f]
+    )
+    set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end
 
@@ -63,15 +74,16 @@ function add_Sf!(BG::BondGraph, Sf::Number, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     eqns = [0 ~ f - Sf]
     sys = ODESystem(eqns, BG.model.iv, [e, f], [Sf], name = name)
-    BG.elements[name] = Element(:Sf, sys, [], false)
-    push!(BG.inputs, parameters(sys))
     add_vertex!(BG.graph)
-    node_index = length(BG.graph.graph.fadjlist)
-    set_prop!(BG.graph, node_index, :name, name)
-    set_prop!(BG.graph, node_index, :type, :Sf)
-    set_prop!(BG.graph, node_index, :sys, sys)
-    set_prop!(BG.graph, node_index, :causality, false)
-    set_prop!(BG.graph, node_index, :state_var, [])
+    node_index = nv(BG.graph)
+    set_prop!(BG.graph, nv(BG.graph), :name, name)
+    props = Dict(
+        :type => :Sf,
+        :sys => sys,
+        :causality => false,
+        :state_var => [sys.f]
+    )
+    set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end
 
@@ -79,13 +91,15 @@ function add_Sf!(BG::BondGraph, Sf, params::Vector{}, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     eqns = [0 ~ f - Sf(BG.model.iv, params)]
     sys = ODESystem(eqns, BG.model.iv, [e, f], params, name = name)
-    BG.elements[name] = Element(:Sf, sys, [], false)
     add_vertex!(BG.graph)
-    node_index = length(BG.graph.graph.fadjlist)
-    set_prop!(BG.graph, node_index, :name, name)
-    set_prop!(BG.graph, node_index, :type, :Sf)
-    set_prop!(BG.graph, node_index, :sys, sys)
-    set_prop!(BG.graph, node_index, :causality, false)
-    set_prop!(BG.graph, node_index, :state_var, [])
+    node_index = nv(BG.graph)
+    set_prop!(BG.graph, nv(BG.graph), :name, name)
+    props = Dict(
+        :type => :Sf,
+        :sys => sys,
+        :causality => false,
+        :state_var => [sys.f]
+    )
+    set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end

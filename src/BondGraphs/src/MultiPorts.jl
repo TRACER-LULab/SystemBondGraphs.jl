@@ -1,6 +1,12 @@
 ## Create C- multiport
 function add_C_multiport!(BG::BondGraph, elements, parameters, name; ϕi = (e, q, params) -> [], ϕk = (e, q, params) -> [])
     # Do the usual setup
+    add_vertex!(BG.graph)
+    node_index = nv(BG.graph)
+    set_prop!(BG.graph, node_index, :name, name)
+    for i ∈ eachindex(elements)
+        add_edge!(BG.graph, BG.graph[name, :name], BG.graph[elements[i].first, :name])
+    end
     D = Differential(BG.model.iv)
     # Sort Elements 
     𝐪_1j = filter(x -> x.second == false, elements)
@@ -16,7 +22,6 @@ function add_C_multiport!(BG::BondGraph, elements, parameters, name; ϕi = (e, q
     𝐞 = map(i -> BG[elements[i].first].e, eachindex(elements))
     # Create Derivative Relationships for displacement d/dt(q_i) = f_i
     deriv_eqns = map(i -> D(𝐪[i]) ~ BG[elements[i].first].f, eachindex(elements))
-    # Create Relationships for (7.20) e_i = ϕ_i(q_1j, e_jn, p)
     𝐞_1j = ϕi(𝐞[j + 1:n], 𝐪[1:j],  parameters)
     e_eqns = map(i -> BG[elements[i].first].e ~ 𝐞_1j[i], 1:j)
     𝐪_jp1n = ϕk(𝐞[j + 1:n], 𝐪[1:j], parameters)
@@ -25,7 +30,13 @@ function add_C_multiport!(BG::BondGraph, elements, parameters, name; ϕi = (e, q
     eqns = convert(Vector{Equation}, eqns)
     subsys = map(i -> BG[elements[i].first], eachindex(elements))
     sys = compose(ODESystem(eqns, BG.model.iv, collect(𝐪), [], name = name), subsys)
-    BG.elements[name] = Element(:C, sys, collect(𝐪), false)
+    props = Dict(
+            :type => :MTF,
+            :sys => sys,
+            :causality => false,
+            :state_var => []
+            )
+    set_props!(BG.graph, node_index, props)
     nothing
 end
 

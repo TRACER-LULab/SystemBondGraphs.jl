@@ -9,7 +9,7 @@ using ModelingToolkit
 using DifferentialEquations
 ## Setup Empty BondGraph
 @variables t
-visco = BondGraph(t)
+visco = BondGraph(t);
 ## Inputs
 add_Se!(visco, :σ₁)
 add_Se!(visco, :σ₂)
@@ -17,6 +17,10 @@ add_Se!(visco, :εE)
 ## Create Connecting Bonds
 add_Bond!(visco, :b2)
 add_Bond!(visco, :b11)
+add_Bond!(visco, :b5)
+add_Bond!(visco, :b6)
+add_Bond!(visco, :b8)
+add_Bond!(visco, :b9)
 ## Multiport C Elements
 # Stress-relationship
 function ϕi(𝐞, 𝐪, params)
@@ -27,16 +31,12 @@ function ϕi(𝐞, 𝐪, params)
     σ2 = μ * (λ₂^2 - λ₃^2)
     return [σ1; σ2]
 end 
+@parameters μ
 # elements
 elems = [:b5 => false, :b8 => false]
-add_C_multiport!(visco, elems, [μ], :Cα, ϕi=ϕi)
+add_C_multiport!(visco, elems, [μ], :Cα, ϕi = ϕi)
 elems = [:b6 => false, :b9 => false]
-add_C_multiport!(visco, elems, [μ], :Cβ, ϕi=ϕi)
-# Bonds
-add_Bond!(visco, :b5)
-add_Bond!(visco, :b6)
-add_Bond!(visco, :b8)
-add_Bond!(visco, :b9)
+add_C_multiport!(visco, elems, [μ], :Cβ, ϕi = ϕi)
 ## Add Dampers
 add_R!(visco, :R1)
 add_R!(visco, :R2)
@@ -52,7 +52,7 @@ add_1J!(visco, Dict([
     :εE => false,
     :b8 => true,
     :b11 => true
-    ]), :J1_1)
+    ]), :J1_2)
 ## Add 0-Junctions
 add_0J!(visco, Dict([
     :b2 => false,
@@ -63,6 +63,7 @@ add_0J!(visco, Dict([
     :b11 => false,
     :R2 => true,
     :b9 => true
-    ]), :J0_1)
+    ]), :J0_2)
 ## Generate the model
 generate_model!(visco)
+
