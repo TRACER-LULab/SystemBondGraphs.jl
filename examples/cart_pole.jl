@@ -81,4 +81,5 @@ cart_pole.model = ODESystem(eqns, t, sts, ps)
 ##
 resolve_derivative_causality!(cart_pole)
 simplify_model!(cart_pole)
+model = cart_pole.model
 save_object("cart_pole.jld2", cart_pole.model)

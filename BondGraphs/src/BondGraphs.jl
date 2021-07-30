@@ -432,7 +432,7 @@ function get_implicit(state_vars, srch_eqns, alg_eqns)
                     end
                 end
             end
-            eqn = expand(simplify(substitute(eqn, sub_dict), expand=true))
+            eqn = expand(simplify(substitute(eqn, sub_dict)))
             eqns = map(x -> expand_derivatives(expand(simplify(substitute(x, sub_dict), expand=true))), eqns)
             args = get_args(eqn.rhs)
             final_args = []
@@ -448,7 +448,7 @@ function get_implicit(state_vars, srch_eqns, alg_eqns)
         search_terms = union(search_terms, final_args)
         end
         eqns = map(x -> expand_derivatives(expand(simplify(substitute(x, Dict([eqn.lhs => eqn.rhs])),  expand=true))), eqns)
-        eqn = simplify(substitute(eqn, sub_dict), expand=true)
+        eqn = simplify(substitute(eqn, sub_dict))
         push!(res_eqns, eqn)
     end
     return res_eqns
