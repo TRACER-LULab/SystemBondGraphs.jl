@@ -1,0 +1,18 @@
+```julia; echo=false; result="hidden"
+using DrWatson
+quickactivate("/home/carson/research/BondGraphs.jl","BondGraphModeling")
+```
+---
+title: Genetic Programming for the Eigenvalue placement of mechatronic systems
+author: Carson Farmer
+date: 15 July 2021
+---
+
+# Introduction
+
+```julia
+using BondGraphs
+using ModelingToolkit
+using DifferentialEquations
+```
+
