@@ -7,6 +7,7 @@ using Symbolics
 using LinearAlgebra
 using LightGraphs
 using MetaGraphs
+using FileIO
 ## TODO: Develop better model parameter handling avoid structs of structs....
 ## TODO: Better interface with LightGraphs and Flux
 export BondGraph,
@@ -78,5 +79,7 @@ end
 
 ## Simplify Bond Graph System 
 simplify_model!(BG::BondGraph) = BG.model = tearing(structural_simplify(BG.model))
+
+include("Import.jl")
 
 end # module

@@ -25,3 +25,4 @@ Manifest.toml
 TestFiles/
 # venv/
 bond_graphs.code-workspace
+src/venv/
