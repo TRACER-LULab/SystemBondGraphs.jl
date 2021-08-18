@@ -17,18 +17,18 @@ end
 
 ## Add R_element to Model
 function add_R!(BG::BondGraph, name; causality = false)
+    add_vertex!(BG.graph)
+    set_prop!(BG.graph, nv(BG.graph), :name, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     @parameters R
     eqns = [e ~ R * f ]
     sys  = ODESystem(eqns, BG.model.iv, [e, f], [R], name = name)
-    add_vertex!(BG.graph)
     props = Dict(
             :type => :R,
             :sys => sys,
             :causality => causality,
             :state_var => []
             )
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
     set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end

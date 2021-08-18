@@ -5,7 +5,6 @@ function add_1J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name::Symbol)
     node_index = nv(BG.graph)
     set_prop!(BG.graph, node_index, :name, name)
     for j ∈ keys(elements)
-        @show j
         add_edge!(BG.graph, BG.graph[name, :name], BG.graph[j, :name])
     end
     eqns = [
@@ -14,7 +13,7 @@ function add_1J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name::Symbol)
     for i ∈ 1:length(elems) - 1
         push!(eqns, BG[elems[i]].f ~ BG[elems[i + 1]].f) # flow equality
     end
-    sys = ODESystem(eqns, BG.model.iv, [], [])
+    sys = ODESystem(eqns, BG.model.iv, [], [], name = name)
     props = Dict(
                 :type => :J1,
                 :eqns => eqns,
@@ -40,7 +39,7 @@ function add_0J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name::Symbol)
     for i ∈ 1:length(elems) - 1
         push!(eqns, BG[elems[i]].e ~ BG[elems[i + 1]].e) # effort equality
     end
-    sys = ODESystem(eqns, BG.model.iv, [], [])
+    sys = ODESystem(eqns, BG.model.iv, [], [], name = name)
     props = Dict(
                 :type => :J0,
                 :eqns => eqns,
