@@ -1,4 +1,8 @@
-## Add Generic Bond to Model
+"""
+
+Create an Bond in a BondGraph to connect Junction->Junction, OnePort->TwoPort. It creates an empty bond to be a connector between elements. 
+
+"""
 function add_Bond!(BG::BondGraph, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     sys = ODESystem(Equation[], BG.model.iv, [e, f], [], name = name)
@@ -15,7 +19,11 @@ function add_Bond!(BG::BondGraph, name)
     nothing
 end
 
-## Add R_element to Model
+"""
+
+Create a Linear R-Element for the bondgraph. Causality will always be false for an R-element since it does not have a "preferred" causality. 
+
+"""
 function add_R!(BG::BondGraph, name; causality = false)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, nv(BG.graph), :name, name)
@@ -32,10 +40,14 @@ function add_R!(BG::BondGraph, name; causality = false)
     set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end
-function add_R!(BG::BondGraph, Φr, params; causality = false)
+
+"""
+Create a nonlinear R-Element with \$\\Phi_r\$ registered with modelingtoolkit.jl to prevent simplification through the nonlinear function. \$e = \\Phi_r(e, f, t, ps)\$. Params are for any parameters to the nonlinear function. 
+"""
+function add_R!(BG::BondGraph, Φr, ps; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv)
-    eqns = [e ~ Φr(e, f, BG.model.iv)]
-    sys = ODESystem(eqns, BG.model.iv, [e, f], params, name = name)
+    eqns = [e ~ Φr(e, f, BG.model.iv, ps)]
+    sys = ODESystem(eqns, BG.model.iv, [e, f], name = name)
     add_vertex!(BG.graph)
     props = Dict(
             :type => :R,
@@ -48,7 +60,9 @@ function add_R!(BG::BondGraph, Φr, params; causality = false)
     nothing
 end
 
-## Add C-element to Model
+"""
+Create a Linear C-Element for analysis. Setting Causality to true represents the elements being in derivative causality. 
+"""
 function add_C!(BG::BondGraph, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) q(BG.model.iv)
     @parameters C
@@ -69,15 +83,19 @@ function add_C!(BG::BondGraph, name; causality = false)
     set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end
-function add_C!(BG::BondGraph, Φc, params, name; causality = false)
+
+"""
+Create a Nonlinear C-Element with \$e = \\phi_c(e, q, t, ps)\$. Setting Causality to true represents the elements being in derivative causality. 
+"""
+function add_C!(BG::BondGraph, Φc, ps, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) q(BG.model.iv)
     D = Differential(BG.model.iv)
     eqns = [
             D(q) ~ f,
-            e ~ Φc(e, q, BG.model.iv) # Integral Causality Form
+            e ~ Φc(e, q, BG.model.iv, ps) # Integral Causality Form
             # 0.0 ~ Φc(e, q, BG.model.iv)
             ]
-    sys = ODESystem(eqns, BG.model.iv, [e, f, q], [], name = name)
+    sys = ODESystem(eqns, name = name)
     add_vertex!(BG.graph)
     props = Dict(
             :type => :C,
@@ -90,7 +108,9 @@ function add_C!(BG::BondGraph, Φc, params, name; causality = false)
     nothing
 end
 
-## Add I-element to model
+"""
+Create a Linear I-Element, setting the casuality to true signifies that the element is in derivative causality
+"""
 function add_I!(BG::BondGraph, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv)
     @parameters I
@@ -111,12 +131,16 @@ function add_I!(BG::BondGraph, name; causality = false)
     set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end
-function add_I!(BG::BondGraph, Φi, params, name; causality = false)
+
+"""
+Create a nonlinear I-element, setting the derivative causality to true signifies that the element is in derivative causality. 
+"""
+function add_I!(BG::BondGraph, Φi, ps, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv)
     D = Differential(BG.model.iv)
     eqns = [
             D(p) ~ e,
-            f ~ Φi(p, f, BG.model.iv) # Integral Causality Form
+            f ~ Φi(p, f, BG.model.iv, ps) # Integral Causality Form
             ]
     sys = ODESystem(eqns, BG.model.iv, [e, f, p], [], name = name)
     add_vertex!(BG.graph)
@@ -131,7 +155,9 @@ function add_I!(BG::BondGraph, Φi, params, name; causality = false)
     nothing
 end
 
-## Add M-element to model
+"""
+Create a Linear M-element with causality being set to false. Derivative causality for M-elements is still under development. 
+"""
 function add_M!(BG::BondGraph, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv) q(BG.model.iv)
     @parameters M
@@ -153,13 +179,17 @@ function add_M!(BG::BondGraph, name; causality = false)
     set_props!(BG.graph, nv(BG.graph), props)
     nothing 
 end
-function add_M!(BG::BondGraph, Φm, params, name; causality = false)
+
+"""
+Create a nonlinear M-element and with parameters, \$ps\$. Derivative causailty is still under development. 
+"""
+function add_M!(BG::BondGraph, Φm, ps, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv) q(BG.model.iv)
     D = Differential(BG.model.iv)
     eqns = [
             D(p) ~ e,
             D(q) ~ f,
-            p ~ Φi(p, q, BG.model.iv) # Integral Causality Form
+            p ~ Φm(p, q, BG.model.iv, ps) # Integral Causality Form
             ]
     sys = ODESystem(eqns, BG.model.iv, [e, f, p, q], [], name = name)
     props = Dict(

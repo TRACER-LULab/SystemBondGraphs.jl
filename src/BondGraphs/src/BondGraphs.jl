@@ -26,7 +26,6 @@ export BondGraph,
         add_C_multiport!,
         add_I_multiport!,
         generate_model!,
-        simplify_model!,
         # get_parameters!,
         get_states,
         set_conditions!,
@@ -39,19 +38,23 @@ export BondGraph,
         resolve_derivative_causality!,
         transfer_function
 ## Function to create a generic Model
-```
-
-A structure representing a BondGraph to contain a BondGraph representation and an OD(A)E Model when the model
-
-```
 mutable struct BondGraph
     graph::MetaGraph
     model::ODESystem
 end
 
+"""
+
+Get the ODE System Corresponding to the Specific Element
+
+"""
 Base.getindex(BG::BondGraph, node::Symbol) = get_prop(BG.graph, BG.graph[node, :name], :sys)
 
-## BondGraph constructor
+"""
+
+Create an empty BondGraph to be populated during the analysis
+
+"""
 function BondGraph(independent_variable)
     mg = MetaGraph()
     set_indexing_prop!(mg, :name)
@@ -66,7 +69,11 @@ include("TwoPorts.jl")
 include("MultiPorts.jl")
 include("DerivativeCausality.jl")
 
-## Create ODE System From Bond Graph Construction 
+"""
+
+Generate an ODE System from the BondGraph Structure
+
+"""
 function generate_model!(BG::BondGraph)
     junction_verts = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:J0, :J1, :TF, :GY, :MTF, :MGY])
     junction_sys = map(v -> get_prop(BG.graph, v, :sys), junction_verts)
@@ -78,9 +85,6 @@ function generate_model!(BG::BondGraph)
     BG.model = compose(BG.model, element_sys...)
     nothing
 end
-
-## Simplify Bond Graph System 
-simplify_model!(BG::BondGraph) = BG.model = tearing(structural_simplify(BG.model))
 
 include("Import.jl")
 
