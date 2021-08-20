@@ -39,9 +39,11 @@ export BondGraph,
         resolve_derivative_causality!,
         transfer_function
 ## Function to create a generic Model
-"""
-Structure of a bond graph which consists of the system model and a graph representation of the system
-"""
+```
+
+A structure representing a BondGraph to contain a BondGraph representation and an OD(A)E Model when the model
+
+```
 mutable struct BondGraph
     graph::MetaGraph
     model::ODESystem

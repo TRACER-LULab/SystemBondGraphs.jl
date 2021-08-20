@@ -47,6 +47,8 @@ prob = ODAEProblem(msd.model, u0, tspan, ps)
 sol = solve(prob, Tsit5())
 ##
 nlabels = map(x -> latexstring(get_prop(msd.graph, x, :name)), 1:nv(msd.graph))
-f, ax, p, = graphplot(msd.graph, nlabels = nlabels)
+f, ax, p, =ax.aspect = DataAspect() graphplot(msd.graph, nlabels = nlabels)
 hidedecorations!(ax); hidespines!(ax)
-ax.aspect = DataAspect()
+c
+
+            
