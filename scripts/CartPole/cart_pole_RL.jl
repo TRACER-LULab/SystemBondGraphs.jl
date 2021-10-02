@@ -34,7 +34,7 @@ function createEnv(θ0, mass_pole, mass_cart, pole_length, gravity, dt)
         x => 0.0,
         θ => θ0
         ] |> Dict
-
+    display(u0)
     ps = [
         mpx₊I => mass_pole,
         mpy₊I => mass_pole,
@@ -89,7 +89,7 @@ function CartPoleEnv(;
     theta_threshold=3.14159 / 4,
     x_threshold=1.0,
     theta_start=randn() * 5 * π / 180,
-    max_steps=200,
+    max_steps=1500,
     rng=Random.GLOBAL_RNG,
 )
     params = CartPoleEnvParams{T}(
@@ -166,7 +166,7 @@ function RL.Experiment(
     seed=123,
     )
     rng = StableRNG(seed)
-    env = CartPoleEnv(; T=Float64, max_steps=400, dt=0.02, rng=rng)
+    env = CartPoleEnv(; T=Float64, max_steps=1500, dt=0.02, rng=rng)
     ns, na = length(state(env)), length(action_space(env))
 
     agent = Agent(
@@ -197,7 +197,11 @@ function RL.Experiment(
             state=Vector{Float32} => (ns,),
         ),
     )
+<<<<<<< HEAD:bond_graph_RL.jl
+    stop_condition = StopAfterEpisode(2_000, is_show_progress=!haskey(ENV, "CI"))
+=======
     stop_condition = StopAfterStep(200, is_show_progress=!haskey(ENV, "CI"))
+>>>>>>> fe25e2120125733af19118c21571c6b2ca61d82f:scripts/CartPole/cart_pole_RL.jl
     hook = TotalRewardPerEpisode()
     Experiment(agent, env, stop_condition, hook, "# BasicDQN > CartPole")
 end
@@ -218,16 +222,27 @@ anim = @animate for i ∈ eachindex(ex.env.de_env.sol.t)
     plot(
         [ex.env.de_env.sol[x][i], ex.env.de_env.sol[x][i] - sin(ex.env.de_env.sol[θ][i]) * 0.5],
         [0.0, cos(ex.env.de_env.sol[θ][i]) * 0.5], 
+<<<<<<< HEAD:bond_graph_RL.jl
+        xlims=(-1.0, 1.0),
+    ylims=(-0.25, 1.0),
+=======
         xlims=(-1.5, 1.5),
         ylims=(-1.5, 1.5),
+>>>>>>> fe25e2120125733af19118c21571c6b2ca61d82f:scripts/CartPole/cart_pole_RL.jl
         title="t=" * string(round(ex.env.de_env.sol.t[i], digits=3)),
-        linewidth=3,
+        linewidth=2,
         aspect_ratio=1
+    )
+    scatter!(
+        [ex.env.de_env.sol[x][i] - sin(ex.env.de_env.sol[θ][i]) * 0.5],
+        [cos(ex.env.de_env.sol[θ][i]) * 0.5],
+        markersize = 6,
+        c = :green
     )
     scatter!(
         [ex.env.de_env.sol[x][i]],
         [0],
-        markersize=6,
+        markersize=12,
         c=:red,
         legend=false
     )

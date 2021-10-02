@@ -432,7 +432,11 @@ function get_implicit(state_vars, srch_eqns, alg_eqns)
                     end
                 end
             end
+<<<<<<< HEAD:BondGraphs/src/BondGraphs.jl
+            eqn = expand(simplify(substitute(eqn, sub_dict)))
+=======
             eqn = simplify(substitute(eqn, sub_dict))
+>>>>>>> fe25e2120125733af19118c21571c6b2ca61d82f:.BondGraphs.jl/src/BondGraphs.jl
             eqns = map(x -> expand_derivatives(expand(simplify(substitute(x, sub_dict), expand=true))), eqns)
             args = get_args(eqn.rhs)
             final_args = []
@@ -448,7 +452,11 @@ function get_implicit(state_vars, srch_eqns, alg_eqns)
         search_terms = union(search_terms, final_args)
         end
         eqns = map(x -> expand_derivatives(expand(simplify(substitute(x, Dict([eqn.lhs => eqn.rhs])),  expand=true))), eqns)
+<<<<<<< HEAD:BondGraphs/src/BondGraphs.jl
+        eqn = simplify(substitute(eqn, sub_dict))
+=======
         eqn = expand(simplify(substitute(eqn, sub_dict)))
+>>>>>>> fe25e2120125733af19118c21571c6b2ca61d82f:.BondGraphs.jl/src/BondGraphs.jl
         push!(res_eqns, eqn)
     end
     return res_eqns

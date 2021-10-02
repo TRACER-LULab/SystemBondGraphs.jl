@@ -100,12 +100,3 @@ p = [
 tspan = (0.0, 10.0)
 prob = ODAEProblem(cart_pole.model, u0, tspan, p) 
 sol = solve(prob, Rodas4())   
-println("Simplified Model")
-##
-@tagsave(
-    datadir("sims", "ODEModels", "cart_pole_model.jld2"),
-    Dict("model" => cart_pole.model, 
-         "state_vars" => states(cart_pole.model), 
-         "params" => parameters(cart_pole.model),
-         "independent_vars" => [cart_pole.model.iv])
-)
