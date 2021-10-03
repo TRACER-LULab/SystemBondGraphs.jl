@@ -1,11 +1,7 @@
-using DrWatson
-@quickactivate "BondGraphModeling"
-##  
 using BondGraphs
 using DifferentialEquations
 using ModelingToolkit
-using GLMakie
-Makie.inline!(false)
+using CairoMakie
 ## Specify Time Parameter
 @parameters t
 ## Create Empty BondGraph

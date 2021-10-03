@@ -13,16 +13,16 @@ quarter_car = BondGraph(t)
 # Parameters
 @parameters h, d, U, ks1, ks2, qs0, kt, B
 # Tire Spring
-Fₜ(e, f, q, t, p) = IfElse.ifelse(q >= 0.0, kt*q, 0)
+Fₜ(e, f, q, t, p) = IfElse.ifelse(q >= 0.0, kt * q, 0)
 # Connecting Spring
-Fₛ(e, f, q, t, p) = IfElse.ifelse(q <= qs0, ks1*q, ks1*qs0+ks2*(q-qs0))
+Fₛ(e, f, q, t, p) = IfElse.ifelse(q <= qs0, ks1 * q, ks1 * qs0 + ks2 * (q - qs0))
 # Cubic Damper
-Fd(e, f, t, p) = B*f^3
+Fd(e, f, t, p) = B * f^3
 # Velocity Input
-vᵢ(e, f, t, p) = IfElse.ifelse(U/d*t > 0.0, 
+vᵢ(e, f, t, p) = IfElse.ifelse(U / d * t > 0.0, 
                                 IfElse.ifelse(
-                                    (U/d *t) <= 1, 
-                                    h/d*π*U*cos(π*U/d*t), 
+                                    (U / d * t) <= 1, 
+                                    h / d * π * U * cos(π * U / d * t), 
                                     0.0),
                                 0.0
                                 )
@@ -85,21 +85,21 @@ quarter_car.model = structural_simplify(quarter_car.model)
 p = Dict()
 u0 = Dict()
 fₛ = 1.0
-ωₛ = 2*π*fₛ
+ωₛ = 2 * π * fₛ
 p[quarter_car[:m_s].I]    = 320
-p[quarter_car[:m_us].I]   = p[quarter_car[:m_s].I]/6
+p[quarter_car[:m_us].I]   = p[quarter_car[:m_s].I] / 6
 p[quarter_car[:v_i].U]    = 0.9
 p[quarter_car[:v_i].d]    = 1.0
 p[quarter_car[:v_i].h]    = 0.25
-p[quarter_car[:C_9].ks1]  = p[quarter_car[:m_s].I]*ωₛ^2
-p[quarter_car[:C_9].ks2]  = 10*p[quarter_car[:C_9].ks1]
-p[quarter_car[:C_2].kt]   = 10*p[quarter_car[:C_9].ks1]
-u0[quarter_car[:C_9].q]   = p[quarter_car[:m_s].I]*9.81/p[quarter_car[:C_9].ks1]
-u0[quarter_car[:C_2].q]   = (p[quarter_car[:m_s].I]+p[quarter_car[:m_us].I])*9.81/p[quarter_car[:C_2].kt]
-p[quarter_car[:C_9].qs0]  = 1.3*u0[quarter_car[:C_9].q]
+p[quarter_car[:C_9].ks1]  = p[quarter_car[:m_s].I] * ωₛ^2
+p[quarter_car[:C_9].ks2]  = 10 * p[quarter_car[:C_9].ks1]
+p[quarter_car[:C_2].kt]   = 10 * p[quarter_car[:C_9].ks1]
+u0[quarter_car[:C_9].q]   = p[quarter_car[:m_s].I] * 9.81 / p[quarter_car[:C_9].ks1]
+u0[quarter_car[:C_2].q]   = (p[quarter_car[:m_s].I] + p[quarter_car[:m_us].I]) * 9.81 / p[quarter_car[:C_2].kt]
+p[quarter_car[:C_9].qs0]  = 1.3 * u0[quarter_car[:C_9].q]
 p[quarter_car[:R_8].B]    = 1500.0
-p[quarter_car[:mg_us].Se] = 9.81*p[quarter_car[:m_us].I]
-p[quarter_car[:mg_s].Se]  = 9.81*p[quarter_car[:m_s].I]
+p[quarter_car[:mg_us].Se] = 9.81 * p[quarter_car[:m_us].I]
+p[quarter_car[:mg_s].Se]  = 9.81 * p[quarter_car[:m_s].I]
 u0[quarter_car[:m_us].p]  = 0.0
 u0[quarter_car[:m_s].p]   = 0.0
 
@@ -108,3 +108,20 @@ tspan = (0.0, 2.0)
 prob = ODAEProblem(quarter_car.model, u0, tspan, p)
 sol = solve(prob)
 lines(sol.t, sol[quarter_car[:C_2].e])
+
+## Plot graph Structure
+function plot_graph(g)
+    nlabels = [string(g.vprops[i][:name]) for i ∈ 1:length(keys(g.vprops))]
+    f, ax, p = graphplot(g.graph, nlabels = nlabels)
+    hidedecorations!(ax); hidespines!(ax)
+    ax.aspect = DataAspect()
+    display(f)
+end
+## Save Graph
+using LightGraphs
+using MetaGraphs
+using GraphMakie
+
+MetaGraphs.savemg("test.dot", quarter_car.graph)
+g = MetaGraphs.loadmg("test.dot")
+plot_graph(g)

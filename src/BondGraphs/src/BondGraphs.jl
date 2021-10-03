@@ -26,7 +26,6 @@ export BondGraph,
         add_C_multiport!,
         add_I_multiport!,
         generate_model!,
-        # get_parameters!,
         get_states,
         set_conditions!,
         generate_ODE,
@@ -39,7 +38,7 @@ export BondGraph,
         transfer_function
 ## Function to create a generic Model
 mutable struct BondGraph
-    graph::MetaGraph
+    graph::MetaDiGraph
     model::ODESystem
 end
 
@@ -56,9 +55,20 @@ Create an empty BondGraph to be populated during the analysis
 
 """
 function BondGraph(independent_variable)
-    mg = MetaGraph()
+    mg = MetaDiGraph()
     set_indexing_prop!(mg, :name)
     sys = ODESystem(Equation[], independent_variable, name = :model)
+    return BondGraph(mg, sys)
+end
+
+function BondGraph(mg::AbstractMetaGraph, independent_variable)
+    sys = ODESystem(Equation[], independent_variable, name = :model)
+    nlabels = [string(mg.vprops[i][:name]) for i ∈ 1:length(keys(mg.vprops))]
+    junctions = filter(x->(x[1:2] == "J0" || x[1:2] == "J1"), nlabels)
+    one_junctions = filter(x->x[2] == "1", junctions)
+    zero_junctions = filter(x->x[2] == "0", junctions)
+    
+
     return BondGraph(mg, sys)
 end
 

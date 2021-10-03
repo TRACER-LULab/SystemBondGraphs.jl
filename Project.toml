@@ -3,6 +3,7 @@ authors = ["Carson Farmer"]
 
 [deps]
 BondGraphs = "ee71fe37-b8ff-49c8-a6aa-778db78e7015"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"

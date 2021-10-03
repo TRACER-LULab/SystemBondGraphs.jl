@@ -5,7 +5,11 @@ function add_1J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name::Symbol)
     node_index = nv(BG.graph)
     set_prop!(BG.graph, node_index, :name, name)
     for j ∈ keys(elements)
-        add_edge!(BG.graph, BG.graph[name, :name], BG.graph[j, :name])
+        if elements[j]
+            add_edge!(BG.graph, BG.graph[j, :name], BG.graph[name, :name])
+        else
+            add_edge!(BG.graph, BG.graph[name, :name], BG.graph[j, :name])
+        end
     end
     eqns = [
             0 ~ sum(x -> BG[x].e * (-1).^(!elements[x]), keys(elements)) # Sum of all efforts is 0
@@ -31,7 +35,11 @@ function add_0J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name::Symbol)
     node_index = nv(BG.graph)
     set_prop!(BG.graph, node_index, :name, name)
     for j ∈ keys(elements)
-        add_edge!(BG.graph, BG.graph[name, :name], BG.graph[j, :name])
+        if elements[j]
+            add_edge!(BG.graph, BG.graph[j, :name], BG.graph[name, :name])
+        else
+            add_edge!(BG.graph, BG.graph[name, :name], BG.graph[j, :name])
+        end
     end
     eqns = [
             0 ~ sum(x -> BG[x].f * (-1).^(!elements[x]), keys(elements)) # Sum of all flows is 0
