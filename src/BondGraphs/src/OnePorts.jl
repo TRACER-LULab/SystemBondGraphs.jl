@@ -44,10 +44,10 @@ end
 """
 Create a nonlinear R-Element with \$\\Phi_r\$ registered with modelingtoolkit.jl to prevent simplification through the nonlinear function. \$e = \\Phi_r(e, f, t, ps)\$. Params are for any parameters to the nonlinear function. 
 """
-function add_R!(BG::BondGraph, Φr, ps; causality = false)
+function add_R!(BG::BondGraph, Φr, ps, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv)
     eqns = [e ~ Φr(e, f, BG.model.iv, ps)]
-    sys = ODESystem(eqns, BG.model.iv, [e, f], name = name)
+    sys = ODESystem(eqns, BG.model.iv, [e, f], ps, name = name)
     add_vertex!(BG.graph)
     props = Dict(
             :type => :R,
@@ -92,7 +92,7 @@ function add_C!(BG::BondGraph, Φc, ps, name; causality = false)
     D = Differential(BG.model.iv)
     eqns = [
             D(q) ~ f,
-            e ~ Φc(e, q, BG.model.iv, ps) # Integral Causality Form
+            e ~ Φc(e, f, q, BG.model.iv, ps) # Integral Causality Form
             # 0.0 ~ Φc(e, q, BG.model.iv)
             ]
     sys = ODESystem(eqns, name = name)
@@ -140,7 +140,7 @@ function add_I!(BG::BondGraph, Φi, ps, name; causality = false)
     D = Differential(BG.model.iv)
     eqns = [
             D(p) ~ e,
-            f ~ Φi(p, f, BG.model.iv, ps) # Integral Causality Form
+            f ~ Φi(e, f, p, BG.model.iv, ps) # Integral Causality Form
             ]
     sys = ODESystem(eqns, BG.model.iv, [e, f, p], [], name = name)
     add_vertex!(BG.graph)
@@ -189,7 +189,7 @@ function add_M!(BG::BondGraph, Φm, ps, name; causality = false)
     eqns = [
             D(p) ~ e,
             D(q) ~ f,
-            p ~ Φm(p, q, BG.model.iv, ps) # Integral Causality Form
+            p ~ Φm(e, f, p, q, BG.model.iv, ps) # Integral Causality Form
             ]
     sys = ODESystem(eqns, BG.model.iv, [e, f, p, q], [], name = name)
     props = Dict(

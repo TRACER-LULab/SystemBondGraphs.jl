@@ -36,7 +36,7 @@ end
 
 function add_Se!(BG::BondGraph, Se, params::Vector{}, name)
     @variables e(BG.model.iv) f(BG.model.iv)
-    eqns = [0 ~ e - Se(BG.model.iv, params)]
+    eqns = [0 ~ e - Se(e, f, BG.model.iv, params)]
     sys = ODESystem(eqns, BG.model.iv, [e, f], params, name = name)
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
@@ -89,7 +89,7 @@ end
 
 function add_Sf!(BG::BondGraph, Sf, params::Vector{}, name)
     @variables e(BG.model.iv) f(BG.model.iv)
-    eqns = [0 ~ f - Sf(BG.model.iv, params)]
+    eqns = [0 ~ f - Sf(e, f, BG.model.iv, params)]
     sys = ODESystem(eqns, BG.model.iv, [e, f], params, name = name)
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
