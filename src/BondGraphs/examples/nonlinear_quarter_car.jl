@@ -1,8 +1,11 @@
+2+2
+##
 using BondGraphs
 using ModelingToolkit
 using CairoMakie
 using DifferentialEquations
 using IfElse
+
 ## Create independent variable
 @parameters t
 
@@ -107,9 +110,13 @@ u0[quarter_car[:m_s].p]   = 0.0
 tspan = (0.0, 2.0)
 prob = ODAEProblem(quarter_car.model, u0, tspan, p)
 sol = solve(prob)
+
+## Plot Force in the Tire
 lines(sol.t, sol[quarter_car[:C_2].e])
 
 ## Plot graph Structure
+using GraphMakie
+
 function plot_graph(g)
     nlabels = [string(g.vprops[i][:name]) for i ∈ 1:length(keys(g.vprops))]
     f, ax, p = graphplot(g.graph, nlabels = nlabels)
@@ -117,11 +124,21 @@ function plot_graph(g)
     ax.aspect = DataAspect()
     display(f)
 end
-## Save Graph
+plot_graph(quarter_car.graph)
+
+## Save Graph 
 using LightGraphs
 using MetaGraphs
-using GraphMakie
 
 MetaGraphs.savemg("test.dot", quarter_car.graph)
 g = MetaGraphs.loadmg("test.dot")
-plot_graph(g)
+
+## Clear all but names from quarter_car.graph for testing
+for name in [g.vprops[i][:name] for i ∈ 1:length(keys(g.vprops))]
+    rem_prop!(g, g[name, :name],  :causality)
+    rem_prop!(g, g[name, :name], :state_var)
+    rem_prop!(g, g[name, :name], :sys)
+    props(g, g[name, :name]) |> display
+end
+
+BondGraph(g, t)
