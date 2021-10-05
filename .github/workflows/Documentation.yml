@@ -2,7 +2,7 @@ name: Documentation
 
 on:
   schedule:
-    - cron: '39 15 * * *'
+    - cron: '45 15 * * *'
 jobs:
   build:
     runs-on: ubuntu-latest
