@@ -1,12 +1,8 @@
 name: Documentation
 
 on:
-  push:
-    branches:
-      - master
-    tags: '*'
-  pull_request:
-
+  schedule:
+    - cron: '45 15 * * *'
 jobs:
   build:
     runs-on: ubuntu-latest
