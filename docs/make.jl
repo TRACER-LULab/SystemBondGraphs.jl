@@ -1,6 +1,4 @@
 using Documenter
-import Pkg
-Pkg.activate(".")
 using BondGraphs
 using ModelingToolkit
 using MetaGraphs
