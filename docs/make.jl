@@ -1,4 +1,4 @@
-import Pkg; Pkg.import("Documenter")
+import Pkg; Pkg.add("Documenter")
 using Documenter
 using BondGraphs
 using ModelingToolkit
