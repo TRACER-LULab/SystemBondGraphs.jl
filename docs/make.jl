@@ -21,3 +21,8 @@ makedocs(
         "I/O" => "Import_Export.md",
         ]
         )
+       
+deploydocs(
+    repo = "github.com/TRACER-LULab/BondGraphs.jl.git",
+)
+
