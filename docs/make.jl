@@ -26,5 +26,6 @@ makedocs(
        
 deploydocs(
     repo = "github.com/TRACER-LULab/BondGraphs.jl.git",
+    devbranch = "main"
 )
 
