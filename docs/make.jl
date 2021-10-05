@@ -1,4 +1,5 @@
 import Pkg; Pkg.add("Documenter")
+
 using Documenter
 using BondGraphs
 Pkg.add("ModelingToolkit")
@@ -21,7 +22,7 @@ makedocs(
         "Transfer Functions" => "TransferFunctions.md",
         "I/O" => "Import_Export.md",
         ]
-        )
+    )
        
 deploydocs(
     repo = "github.com/TRACER-LULab/BondGraphs.jl.git",
