@@ -1,7 +1,8 @@
 name: Documentation
 
-on: [push]
-
+on:
+  schedule:
+    - cron: '39 15 * * *'
 jobs:
   build:
     runs-on: ubuntu-latest
