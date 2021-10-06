@@ -99,9 +99,11 @@ add_0J!(third_damper, Dict(
     :k => false
     ),
     :J05)
+
 # Generate and Simplify Model
 generate_model!(third_damper)
 third_damper.model = structural_simplify(third_damper.model)
+
 # Set Parameters for study
 @variables mus
 ps = Dict{Num , Real}(
@@ -117,6 +119,7 @@ ps = Dict{Num , Real}(
     third_damper[:b2].R     => 2798.86,
     third_damper[:b].R      => 1119.54,
     )
+
 # Get A & B state_matrices
 @variables s
 A, B, sts, ins = state_matrices(third_damper, s, ps = ps);
@@ -136,33 +139,22 @@ for i ∈ eachindex(m)
     ps_tf = Dict(mus => m[i])
     for f ∈ freqs
         s_in = f*1im
-        Q8_Vin   = TF_AB(A, B, s_in, sts[third_damper[:k1].q], ins[third_damper[:vin].Sf], ps = ps_tf)
-        Q15_Vin  = TF_AB(A, B, s_in, sts[third_damper[:k2].q], ins[third_damper[:vin].Sf], ps = ps_tf)
-        P4_Vin   = TF_AB(A, B, s_in, sts[third_damper[:mus1].p], ins[third_damper[:vin].Sf], ps = ps_tf)
         P12_Vin  = TF_AB(A, B, s_in, sts[third_damper[:ms].p], ins[third_damper[:vin].Sf], ps = ps_tf)
-        P12g_Vin = TF_AB(A, B, s_in, sts[third_damper[:ms].p], ins[third_damper[:msg].Se], ps = ps_tf)
-        P19_Vin  = TF_AB(A, B, s_in, sts[third_damper[:mus2].p], ins[third_damper[:vin].Sf], ps = ps_tf)
-        k1 = 1/ps[third_damper[:k1].C]
-        k2 = 1/ps[third_damper[:k2].C]
-        b1 = ps[third_damper[:b1].R]
-        b2 = ps[third_damper[:b2].R]
-        m_us1 = m[i]
-        m_us2 = m[i]
-        m_s = ps[third_damper[:ms].I]
-        res = (k1*Q8_Vin + k2*Q15_Vin + b1/m_us1*P4_Vin + (-b1-b2)/m_s*P12_Vin + b2/m_us2*P19_Vin)/b1
+        res = (P12_Vin*s_in)/ps[third_damper[:b1].R]
         push!(AR, abs(res))
         push!(PA, angle(res)*180/π)
     end
     plot!(AR_plot, freqs, AR, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
     plot!(PA_plot, freqs, PA, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
 end
-plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :topleft, xscale = :log10, xlabel = "Frequency [rad/s]", ylabel = "AR [(Fₘₛ+mₛg)/(Vᵢₙb₁)]")
+plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :topleft, xscale = :log10, xlabel = "Frequency [rad/s]", ylabel = "AR [(Fₘₛ+mₛg)/(Vᵢₙb₁)]", ylims = (0, 4))
 plot!(PA_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :bottomleft, xscale = :log10, ylims = (-400, 100), xlabel = "Frequency [rad/s]", ylabel = "Phase Angle [∘]")
 plot!(AR_plot, PA_plot, layout = (2, 1), size = (800, 500))
 
 ##
+@parameters t
 car = BondGraph(t)
-
+# Build Bond Graph
 add_Sf!(car, :vin)
 add_C!(car, :kt1)
 add_Bond!(car, :b3)
@@ -245,10 +237,13 @@ add_0J!(car, Dict(
     :b21 => false
     ),
     :J04) 
+
 # Generate Model
 generate_model!(car)
 car.model = structural_simplify(car.model)
+
 # Create Parameters
+@variables mus
 ps = Dict{Num , Real}(
     car[:ms].I     => 680.0,
     car[:mus1].I   => mus,
@@ -261,10 +256,16 @@ ps = Dict{Num , Real}(
     car[:b1].R     => 2798.86,
     car[:b2].R     => 2798.86,
     )
+
 # Get A & B state_matrices
 @variables s
-A, B, sts, ins = state_matrices(car, s, ps = ps);
+A_conv, B_conv, sts, ins = state_matrices(car, s, ps = ps);
+
 # Plot
+m = [25.0, 50.0, 75.0]
+# AR_plot = plot()
+# PA_plot = plot()
+linetype = [:solid, :dash, :dot]
 for i ∈ eachindex(m)
     AR = Float64[]
     PA = Float64[]
@@ -272,26 +273,15 @@ for i ∈ eachindex(m)
     ps_tf = Dict(mus => m[i])
     for f ∈ freqs
         s_in = f*1im
-        Q8_Vin   = TF_AB(A, B, s_in, sts[car[:k1].q], ins[car[:vin].Sf], ps = ps_tf)
-        Q15_Vin  = TF_AB(A, B, s_in, sts[car[:k2].q], ins[car[:vin].Sf], ps = ps_tf)
-        P4_Vin   = TF_AB(A, B, s_in, sts[car[:mus1].p], ins[car[:vin].Sf], ps = ps_tf)
-        P12_Vin  = TF_AB(A, B, s_in, sts[car[:ms].p], ins[car[:vin].Sf], ps = ps_tf)
-        P12g_Vin = TF_AB(A, B, s_in, sts[car[:ms].p], ins[car[:msg].Se], ps = ps_tf)
-        P19_Vin  = TF_AB(A, B, s_in, sts[car[:mus2].p], ins[car[:vin].Sf], ps = ps_tf)
-        k1 = 1/ps[car[:k1].C]
-        k2 = 1/ps[car[:k2].C]
-        b1 = ps[car[:b1].R]
-        b2 = ps[car[:b2].R]
-        m_us1 = m[i]
-        m_us2 = m[i]
-        m_s = ps[car[:ms].I]
-        res = (k1*Q8_Vin + k2*Q15_Vin + b1/m_us1*P4_Vin + (-b1-b2)/m_s*P12_Vin + b2/m_us2*P19_Vin)/b1
+        P12_Vin  = TF_AB(A_conv, B_conv, s_in, sts[car[:ms].p], ins[car[:vin].Sf], ps = ps_tf)
+        res = (P12_Vin*s_in)/ps[car[:b1].R]
         push!(AR, abs(res))
         push!(PA, angle(res)*180/π)
     end
     plot!(AR_plot, freqs, AR, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
     plot!(PA_plot, freqs, PA, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
 end
+
 plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), xscale = :log10, ylims = (0, 4))
 plot!(PA_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), xscale = :log10, ylims = (-400, 100))
 plot!(AR_plot, PA_plot, layout = (2, 1), size = (800, 500))

@@ -18,7 +18,7 @@ export BondGraph,
         add_1J!, add_0J!,
         add_C_multiport!, add_I_multiport!,
         generate_model!,
-        transfer_function,state_matrices,
+        transfer_function,state_matrices, TF_AB,
         get_graph, savebondgraph, loadbondgraph
         # check_lhs,
         # check_rhs,
