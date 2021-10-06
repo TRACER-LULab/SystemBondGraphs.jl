@@ -142,7 +142,7 @@ for i ∈ eachindex(m)
         P12_Vin  = TF_AB(A, B, s_in, sts[third_damper[:ms].p], ins[third_damper[:vin].Sf], ps = ps_tf)
         res = (P12_Vin*s_in)/ps[third_damper[:b1].R]
         push!(AR, abs(res))
-        push!(PA, angle(res)*180/π)
+        push!(PA, rad2deg(angle(res)))
     end
     plot!(AR_plot, freqs, AR, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
     plot!(PA_plot, freqs, PA, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
@@ -276,7 +276,7 @@ for i ∈ eachindex(m)
         P12_Vin  = TF_AB(A_conv, B_conv, s_in, sts[car[:ms].p], ins[car[:vin].Sf], ps = ps_tf)
         res = (P12_Vin*s_in)/ps[car[:b1].R]
         push!(AR, abs(res))
-        push!(PA, angle(res)*180/π)
+        push!(PA, rad2deg(angle(res)))
     end
     plot!(AR_plot, freqs, AR, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
     plot!(PA_plot, freqs, PA, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
