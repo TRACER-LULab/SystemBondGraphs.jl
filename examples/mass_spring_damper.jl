@@ -40,8 +40,5 @@ prob = ODAEProblem(msd.model, u0, tspan, ps)
 sol = solve(prob, Tsit5())
 ## Generate Transfer Function
 @parameters s
-transfer_function(msd, s)
-## Plot the Results
-lines(sol.t, sol[msd[:C_1].q])
-lines!(sol.t, sol[msd[:I_1].p])
-lines!(sol.t, sol[msd[:R_1].e])
+tf = transfer_function(msd, s)
+tf[msd[:C_1].q, msd[:Se].Se] |> expand |> simplify
