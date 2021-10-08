@@ -121,8 +121,9 @@ ps = Dict{Num , Real}(
     )
 
 # Get A & B state_matrices
-@variables s
-A, B, C, D, in_dict, sts_dict = state_space(third_damper, third_damper[:vin].Sf, third_damper[:ms].e, s, ps = ps);
+A, B, C, D, sts, ins = state_space(third_damper, third_damper[:vin].Sf,   third_damper[:ms].e, ps = ps);
+in_dict = Dict(ins .=> eachindex(ins))
+sts_dict = Dict(sts .=> eachindex(sts))
 _A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
 AF(mus) = reshape(_A_func([mus]), size(A))
 _B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
@@ -137,14 +138,14 @@ DF(mus) = reshape(_D_func([mus]), size(D))
 
 # Plotting
 AR_plot = plot()
-PA_plot = plot()ff
+PA_plot = plot()
 linetype = [:solid, :dash, :dot]
 m = [25.0, 50.0, 75.0]
 for i ∈ eachindex(m)
     freqs = 10 .^(0:0.01:3)
     _A = AF(m[i])
-    _A[2, 6] = -_A[2, 6]
-    _A[6, 2] = -_A[6, 2]
+    # _A[2, 6] = -_A[2, 6]
+    # _A[6, 2] = -_A[6, 2]
     _B = BF(m[i])
     _C = CF(m[i])
     _D = DF(m[i])
@@ -267,7 +268,9 @@ ps = Dict{Num , Real}(
 
 # Get A & B state_matrices
 @variables s
-A, B, C, D, in_dict, sts_dict = state_space(car, car[:vin].Sf, car[:ms].e, s, ps = ps);
+A, B, C, D, sts, ins = state_space(car, car[:vin].Sf, car[:ms].e, ps = ps);
+in_dict = Dict(ins .=> eachindex(ins))
+sts_dict = Dict(sts .=> eachindex(sts))
 _A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
 AF(mus) = reshape(_A_func([mus]), size(A))
 _B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
