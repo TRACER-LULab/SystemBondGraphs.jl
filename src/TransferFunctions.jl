@@ -32,6 +32,7 @@ function transfer_function(BG::BondGraph, s; ps = Dict{Any, Any}())
         push!(A, Aᵢ) 
         push!(B, Bᵢ)
     end
+
     A = reduce(hcat, A) |> permutedims
     B = reduce(hcat, B) |> permutedims
     TF = (s * I(length(sts)) - A)^(-1) * B
@@ -68,7 +69,7 @@ function state_matrices(BG::BondGraph, s; ps = Dict{Any, Any}())
             st_dict[sts[j]] = 0.0
         end
         Bᵢ = []
-        for j ∈ eachindex(ins) 
+        for j ∈ eachindex(ins)
             in_dict[ins[j]] = 1.0
             push!(Bᵢ, substitute(substitute(eqns[i].rhs, st_dict), in_dict) |> expand)
             in_dict[ins[j]] = 0.0
@@ -76,24 +77,12 @@ function state_matrices(BG::BondGraph, s; ps = Dict{Any, Any}())
         push!(A, Aᵢ) 
         push!(B, Bᵢ)
     end
+
     A = reduce(hcat, A) |> permutedims
     B = reduce(hcat, B) |> permutedims
     sts = Dict([sts[i] => i for i in eachindex(sts)])
     ins = Dict([ins[i] => i for i in eachindex(ins)])
+    # A = simplify.(expand.(A))
+    # B = simplify.(expand.(B))
     return A, B, sts, ins
-end
-
-function TF_AB(A, B, s_val, in_idx, out_idx; ps = Dict())
-    _A = similar(A)
-    _B = similar(B)
-    for i ∈ 1:size(A, 1)
-        for j ∈ 1:size(A, 2)
-            _A[i, j] = substitute(A[i,j], ps)
-        end
-        for j ∈ 1:size(B, 2)
-            _B[i,j] = substitute(B[i,j], ps)
-        end
-    end
-    res = (s_val*I(size(_A, 1))-_A)^(-1)*(_B)
-    res[in_idx, out_idx]
 end

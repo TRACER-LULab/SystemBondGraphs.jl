@@ -122,28 +122,36 @@ ps = Dict{Num , Real}(
 
 # Get A & B state_matrices
 @variables s
-A, B, sts, ins = state_matrices(third_damper, s, ps = ps);
+A, B, C, D, in_dict, sts_dict = state_space(third_damper, third_damper[:vin].Sf, third_damper[:ms].e, s, ps = ps);
+_A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
+AF(mus) = reshape(_A_func([mus]), size(A))
+_B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
+BF(mus) = reshape(_B_func([mus]), size(B))
+_C_func = eval(build_function(C,[mus],parallel=Symbolics.MultithreadedForm())[1])
+CF(mus) = reshape(_C_func([mus]), size(C))
+_D_func = eval(build_function(D,[mus],parallel=Symbolics.MultithreadedForm())[1])
+DF(mus) = reshape(_D_func([mus]), size(D))
 # Adjustment to Match MATLAB Code
 # A[2, 6] = -A[2, 6]
 # A[6, 2] = -A[6, 2]
 
 # Plotting
 AR_plot = plot()
-PA_plot = plot()
+PA_plot = plot()ff
 linetype = [:solid, :dash, :dot]
 m = [25.0, 50.0, 75.0]
 for i ∈ eachindex(m)
-    AR = Float64[]
-    PA = Float64[]
     freqs = 10 .^(0:0.01:3)
-    ps_tf = Dict(mus => m[i])
-    for f ∈ freqs
-        s_in = f*1im
-        P12_Vin  = TF_AB(A, B, s_in, sts[third_damper[:ms].p], ins[third_damper[:vin].Sf], ps = ps_tf)
-        res = (P12_Vin*s_in)/ps[third_damper[:b1].R]
-        push!(AR, abs(res))
-        push!(PA, rad2deg(angle(res)))
-    end
+    _A = AF(m[i])
+    _A[2, 6] = -_A[2, 6]
+    _A[6, 2] = -_A[6, 2]
+    _B = BF(m[i])
+    _C = CF(m[i])
+    _D = DF(m[i])
+    TF(s) = (_C'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D')[in_dict[third_damper[:vin].Sf]]
+    res = TF.(freqs.*1im)./ps[third_damper[:b1].R]
+    AR = abs.(res)
+    PA = rad2deg.(angle.(res))
     plot!(AR_plot, freqs, AR, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
     plot!(PA_plot, freqs, PA, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
 end
@@ -259,8 +267,15 @@ ps = Dict{Num , Real}(
 
 # Get A & B state_matrices
 @variables s
-A_conv, B_conv, sts, ins = state_matrices(car, s, ps = ps);
-
+A, B, C, D, in_dict, sts_dict = state_space(car, car[:vin].Sf, car[:ms].e, s, ps = ps);
+_A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
+AF(mus) = reshape(_A_func([mus]), size(A))
+_B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
+BF(mus) = reshape(_B_func([mus]), size(B))
+_C_func = eval(build_function(C,[mus],parallel=Symbolics.MultithreadedForm())[1])
+CF(mus) = reshape(_C_func([mus]), size(C))
+_D_func = eval(build_function(D,[mus],parallel=Symbolics.MultithreadedForm())[1])
+DF(mus) = reshape(_D_func([mus]), size(D))
 # Plot
 m = [25.0, 50.0, 75.0]
 # AR_plot = plot()
@@ -270,14 +285,14 @@ for i ∈ eachindex(m)
     AR = Float64[]
     PA = Float64[]
     freqs = 10 .^(0:0.01:3)
-    ps_tf = Dict(mus => m[i])
-    for f ∈ freqs
-        s_in = f*1im
-        P12_Vin  = TF_AB(A_conv, B_conv, s_in, sts[car[:ms].p], ins[car[:vin].Sf], ps = ps_tf)
-        res = (P12_Vin*s_in)/ps[car[:b1].R]
-        push!(AR, abs(res))
-        push!(PA, rad2deg(angle(res)))
-    end
+    _A = AF(m[i])
+    _B = BF(m[i])
+    _C = CF(m[i])
+    _D = DF(m[i])
+    TF(s) = (_C'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D')[in_dict[third_damper[:vin].Sf]]
+    res = TF.(freqs.*1im)./ps[car[:b1].R]
+    AR = abs.(res)
+    PA = rad2deg.(angle.(res))
     plot!(AR_plot, freqs, AR, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
     plot!(PA_plot, freqs, PA, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
 end
