@@ -1,19 +1,19 @@
-2+2
-##
 using BondGraphs
 using ModelingToolkit
 using DifferentialEquations
 using Plots
+
 ## Problem Independent Variable
 @parameters t
 
 ## Create Empty Bondgraph
 koenig = BondGraph(t)
-add_Sf!(koenig, :sf)
+@parameters ω
+add_Sf!(koenig, :vin)
 add_C!(koenig, :kt1)
 add_Bond!(koenig, :b3)
 add_0J!(koenig, Dict(
-    :sf => true,
+    :vin => true,
     :kt1 => false,
     :b3 => false),
     :J01)
@@ -125,15 +125,13 @@ ps = Dict{Num , Real}(
 
 ## Create Transfer Function
 @variables s
-tf = transfer_function(koenig, s, ps = ps);
-tf1 = tf[koenig[:ms].p, koenig[:sf].Sf];
-tf2 = tf[koenig[:ms].p, koenig[:msg].Se];
+tf1 = transfer_function(koenig, s, ps = ps)[koenig[:ms].p, koenig[:vin].Sf];
+tf2 = transfer_function(koenig, s, ps = ps)[koenig[:ms].p, koenig[:msg].Se];
 get_variables(tf1)
 get_variables(tf2)
 
 ## TF = (P_ms*s/V_in + (Se_ms/P_ms)*(P_ms)/(V_in))*(1/b₁)
 TF = (tf1*s+tf1/tf2)/ps[koenig[:b1].R];
-
 # TF = (tf1*s);
 get_variables(TF)
 ## Use substitute instead of build_function to get results
@@ -145,16 +143,20 @@ function bypass(tf, mus_val, s_val)
     )
     substitute(tf, d)
 end
+ans = abs(bypass(TF, 25.0, 10*2*π*1im))
 ##
 AR_plt = plot()
 PA_plt = plot()
 freqs = 10 .^(0:0.05:3)
 for m ∈ [25.0, 50.0, 75.0]
     res = map(f-> bypass(TF, m, f*(2π)*1.0im), freqs)
+    display(m)
     AR = getfield.(abs.(res), :val)
     PA = getfield.(angle.(res).*180/π, :val)
     plot!(AR_plt, freqs, AR,  label = string(m))
+    display(AR_plt)
     plot!(PA_plt, freqs, PA, label = string(m))
+    display(PA_plt)
 end
 plot!(AR_plt, size = (400,100).*2, xtick = 10 .^ (0:1:3), xscale = :log10, ylims =(0, 4))
 plot!(PA_plt, size = (400,100).*2, xtick = 10 .^ (0:1:3), xscale = :log10, ylims = (-400,100))
