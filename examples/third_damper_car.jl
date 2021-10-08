@@ -2,27 +2,25 @@ using BondGraphs
 using ModelingToolkit
 using DifferentialEquations
 using Plots
-
-## Problem Independent Variable
+using LinearAlgebra
+## Analysis for Third Damper Model
 @parameters t
-
-## Create Empty Bondgraph
-koenig = BondGraph(t)
-@parameters ω
-add_Sf!(koenig, :vin)
-add_C!(koenig, :kt1)
-add_Bond!(koenig, :b3)
-add_0J!(koenig, Dict(
+# Create Empty Bondgraph
+third_damper = BondGraph(t)
+add_Sf!(third_damper, :vin)
+add_C!(third_damper, :kt1)
+add_Bond!(third_damper, :b3)
+add_0J!(third_damper, Dict(
     :vin => true,
     :kt1 => false,
     :b3 => false),
     :J01)
-add_I!(koenig, :mus1)
-add_Se!(koenig, :musg1)
-add_Bond!(koenig, :b6)
-add_Bond!(koenig, :b24)
-add_Bond!(koenig, :b23)
-add_1J!(koenig, Dict(
+add_I!(third_damper, :mus1)
+add_Se!(third_damper, :musg1)
+add_Bond!(third_damper, :b6)
+add_Bond!(third_damper, :b24)
+add_Bond!(third_damper, :b23)
+add_1J!(third_damper, Dict(
     :b3 => true, 
     :mus1 => false,
     :musg1 => true,
@@ -31,54 +29,54 @@ add_1J!(koenig, Dict(
     :b24 => false
     ),
     :J11)
-add_Bond!(koenig, :b7)
-add_Bond!(koenig, :b10)
-add_0J!(koenig, Dict(
+add_Bond!(third_damper, :b7)
+add_Bond!(third_damper, :b10)
+add_0J!(third_damper, Dict(
     :b6 => true, 
     :b7 => false,
     :b10 => false
     ),
     :J02)
-add_C!(koenig, :k1)
-add_R!(koenig, :b1)
-add_1J!(koenig, Dict(
+add_C!(third_damper, :k1)
+add_R!(third_damper, :b1)
+add_1J!(third_damper, Dict(
     :k1 => false,
     :b1 => false,
     :b7 => true
     ), 
     :J12)
-add_Se!(koenig, :msg)
-add_I!(koenig, :ms)
-add_Bond!(koenig, :b13)
-add_1J!(koenig, Dict(
+add_Se!(third_damper, :msg)
+add_I!(third_damper, :ms)
+add_Bond!(third_damper, :b13)
+add_1J!(third_damper, Dict(
     :b10 => true, 
     :msg => false,
     :ms => false,
     :b13 => true
     ),
     :J13)
-add_Bond!(koenig, :b14)
-add_Bond!(koenig, :b17)
-add_0J!(koenig, Dict(
+add_Bond!(third_damper, :b14)
+add_Bond!(third_damper, :b17)
+add_0J!(third_damper, Dict(
     :b13 => false,
     :b14 => false,
     :b17 => true
     ),
     :J03)
-add_C!(koenig, :k2)
-add_R!(koenig, :b2)
-add_1J!(koenig, Dict(
+add_C!(third_damper, :k2)
+add_R!(third_damper, :b2)
+add_1J!(third_damper, Dict(
     :b14 => true, 
     :k2 => false,
     :b2 => false
     ), 
     :J14)
-add_Se!(koenig, :musg2)
-add_I!(koenig, :mus2)
-add_C!(koenig, :kt2)
-add_Bond!(koenig, :b21)
-add_Bond!(koenig, :b27)
-add_1J!(koenig, Dict(
+add_Se!(third_damper, :musg2)
+add_I!(third_damper, :mus2)
+add_C!(third_damper, :kt2)
+add_Bond!(third_damper, :b21)
+add_Bond!(third_damper, :b27)
+add_1J!(third_damper, Dict(
     :b17 => false,
     :musg2 => true,
     :mus2 => false,
@@ -87,83 +85,84 @@ add_1J!(koenig, Dict(
     :b27 => true
     ), 
     :J15)
-add_R!(koenig, :b)
-add_0J!(koenig, Dict(
+add_R!(third_damper, :b)
+add_0J!(third_damper, Dict(
     :b24 => true, 
     :b => false,
     :b27 => false
     ), 
     :J04)
-add_C!(koenig, :k)
-add_0J!(koenig, Dict(
+add_C!(third_damper, :k)
+add_0J!(third_damper, Dict(
     :b23 => true, 
     :b21 => false,
     :k => false
     ),
     :J05)
-## Generate and Simplify Model
-generate_model!(koenig)
-koenig.model = structural_simplify(koenig.model)
-## Set Parameters for study
+
+# Generate and Simplify Model
+generate_model!(third_damper)
+third_damper.model = structural_simplify(third_damper.model)
+
+# Set Parameters for study
 @variables mus
 ps = Dict{Num , Real}(
-    koenig[:ms].I     => 680.0,
-    koenig[:msg].Se   => 680.0*9.81,
-    koenig[:mus1].I   => mus,
-    koenig[:mus2].I   => mus,
-    koenig[:musg1].Se => mus*9.81,
-    koenig[:musg2].Se => mus*9.81,
-    koenig[:k1].C     => 1/32_000,
-    koenig[:k2].C     => 1/32_000,
-    koenig[:kt1].C    => 1/360_000,
-    koenig[:kt2].C    => 1/360_000,
-    koenig[:k].C      => 1/360_000,
-    koenig[:b1].R     => 2798.86,
-    koenig[:b2].R     => 2798.86,
-    koenig[:b].R      => 1119.54,
+    third_damper[:ms].I     => 680.0,
+    third_damper[:mus1].I   => mus,
+    third_damper[:mus2].I   => mus,
+    third_damper[:k1].C     => 1/32_000,
+    third_damper[:k2].C     => 1/32_000,
+    third_damper[:kt1].C    => 1/360_000,
+    third_damper[:kt2].C    => 1/360_000,
+    third_damper[:k].C      => 1/360_000,
+    third_damper[:b1].R     => 2798.86,
+    third_damper[:b2].R     => 2798.86,
+    third_damper[:b].R      => 1119.54,
     )
 
-## Create Transfer Function
+# Get A & B state_matrices
 @variables s
-tf1 = transfer_function(koenig, s, ps = ps)[koenig[:ms].p, koenig[:vin].Sf];
-tf2 = transfer_function(koenig, s, ps = ps)[koenig[:ms].p, koenig[:msg].Se];
-get_variables(tf1)
-get_variables(tf2)
+A, B, C, D, in_dict, sts_dict = state_space(third_damper, third_damper[:vin].Sf, third_damper[:ms].e, s, ps = ps);
+_A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
+AF(mus) = reshape(_A_func([mus]), size(A))
+_B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
+BF(mus) = reshape(_B_func([mus]), size(B))
+_C_func = eval(build_function(C,[mus],parallel=Symbolics.MultithreadedForm())[1])
+CF(mus) = reshape(_C_func([mus]), size(C))
+_D_func = eval(build_function(D,[mus],parallel=Symbolics.MultithreadedForm())[1])
+DF(mus) = reshape(_D_func([mus]), size(D))
+# Adjustment to Match MATLAB Code
+# A[2, 6] = -A[2, 6]
+# A[6, 2] = -A[6, 2]
 
-## TF = (P_ms*s/V_in + (Se_ms/P_ms)*(P_ms)/(V_in))*(1/b₁)
-TF = (tf1*s+tf1/tf2)/ps[koenig[:b1].R];
-# TF = (tf1*s);
-get_variables(TF)
-## Use substitute instead of build_function to get results
-function bypass(tf, mus_val, s_val)
-    @variables mus, s
-    d = Dict(
-        mus => mus_val,
-        s => s_val
-    )
-    substitute(tf, d)
+# Plotting
+AR_plot = plot()
+PA_plot = plot()ff
+linetype = [:solid, :dash, :dot]
+m = [25.0, 50.0, 75.0]
+for i ∈ eachindex(m)
+    freqs = 10 .^(0:0.01:3)
+    _A = AF(m[i])
+    _A[2, 6] = -_A[2, 6]
+    _A[6, 2] = -_A[6, 2]
+    _B = BF(m[i])
+    _C = CF(m[i])
+    _D = DF(m[i])
+    TF(s) = (_C'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D')[in_dict[third_damper[:vin].Sf]]
+    res = TF.(freqs.*1im)./ps[third_damper[:b1].R]
+    AR = abs.(res)
+    PA = rad2deg.(angle.(res))
+    plot!(AR_plot, freqs, AR, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
+    plot!(PA_plot, freqs, PA, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
 end
-ans = abs(bypass(TF, 25.0, 10*2*π*1im))
+plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :topleft, xscale = :log10, xlabel = "Frequency [rad/s]", ylabel = "AR [(Fₘₛ+mₛg)/(Vᵢₙb₁)]", ylims = (0, 4))
+plot!(PA_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :bottomleft, xscale = :log10, ylims = (-400, 100), xlabel = "Frequency [rad/s]", ylabel = "Phase Angle [∘]")
+plot!(AR_plot, PA_plot, layout = (2, 1), size = (800, 500))
+
 ##
-AR_plt = plot()
-PA_plt = plot()
-freqs = 10 .^(0:0.05:3)
-for m ∈ [25.0, 50.0, 75.0]
-    res = map(f-> bypass(TF, m, f*(2π)*1.0im), freqs)
-    display(m)
-    AR = getfield.(abs.(res), :val)
-    PA = getfield.(angle.(res).*180/π, :val)
-    plot!(AR_plt, freqs, AR,  label = string(m))
-    display(AR_plt)
-    plot!(PA_plt, freqs, PA, label = string(m))
-    display(PA_plt)
-end
-plot!(AR_plt, size = (400,100).*2, xtick = 10 .^ (0:1:3), xscale = :log10, ylims =(0, 4))
-plot!(PA_plt, size = (400,100).*2, xtick = 10 .^ (0:1:3), xscale = :log10, ylims = (-400,100))
-plot!(AR_plt, PA_plt, layout = (2, 1), size = (800, 400))
-##
+@parameters t
 car = BondGraph(t)
-
+# Build Bond Graph
 add_Sf!(car, :vin)
 add_C!(car, :kt1)
 add_Bond!(car, :b3)
@@ -175,12 +174,12 @@ add_0J!(car, Dict(
     :J01)
 add_I!(car, :mus1)
 add_Se!(car, :mus1g)
-add_Bond(car, :b6)
+add_Bond!(car, :b6)
 add_Bond!(car, :b23)
 add_1J!(car, Dict(
     :b3 => true,
     :mus1 => false,
-    :mus1g => true,
+    :mus1g => false,
     :b6 => false,
     :b23 => false
     ),
@@ -195,7 +194,7 @@ add_0J!(car, Dict(
     :J02)
 add_C!(car, :k1)
 add_R!(car, :b1)
-add_1J!(car, DicT(
+add_1J!(car, Dict(
     :b7 => true, 
     :k1 => false,
     :b1 => false
@@ -219,9 +218,9 @@ add_0J!(car, Dict(
     :b17 => true
     ), 
     :J03)
-add_C!(car, :k2)
+add_C!(car, :k2) 
 add_R!(car, :b2)
-add_1j!(car, Dict(
+add_1J!(car, Dict(
     :b14 => true,
     :k2 => false,
     :b2 => false
@@ -233,19 +232,71 @@ add_C!(car, :kt2)
 add_Bond!(car, :b21)
 add_1J!(car, Dict(
     :b17 => false,
-    :mus2g => true, 
+    :mus2g => false, 
     :mus2 =>false,
     :kt2 => false,
     :b21 => true
     ),
     :J15)
 add_C!(car, :k)
-add_0J!(car, DicT(
+add_0J!(car, Dict(
     :b23 => true,
     :k => false,
     :b21 => false
     ),
-    :J04)
+    :J04) 
 
+# Generate Model
 generate_model!(car)
-car.model = structural_simplify(car)
+car.model = structural_simplify(car.model)
+
+# Create Parameters
+@variables mus
+ps = Dict{Num , Real}(
+    car[:ms].I     => 680.0,
+    car[:mus1].I   => mus,
+    car[:mus2].I   => mus,
+    car[:k1].C     => 1/32_000,
+    car[:k2].C     => 1/32_000,
+    car[:kt1].C    => 1/360_000,
+    car[:kt2].C    => 1/360_000,
+    car[:k].C      => 1/360_000,
+    car[:b1].R     => 2798.86,
+    car[:b2].R     => 2798.86,
+    )
+
+# Get A & B state_matrices
+@variables s
+A, B, C, D, in_dict, sts_dict = state_space(car, car[:vin].Sf, car[:ms].e, s, ps = ps);
+_A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
+AF(mus) = reshape(_A_func([mus]), size(A))
+_B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
+BF(mus) = reshape(_B_func([mus]), size(B))
+_C_func = eval(build_function(C,[mus],parallel=Symbolics.MultithreadedForm())[1])
+CF(mus) = reshape(_C_func([mus]), size(C))
+_D_func = eval(build_function(D,[mus],parallel=Symbolics.MultithreadedForm())[1])
+DF(mus) = reshape(_D_func([mus]), size(D))
+# Plot
+m = [25.0, 50.0, 75.0]
+# AR_plot = plot()
+# PA_plot = plot()
+linetype = [:solid, :dash, :dot]
+for i ∈ eachindex(m)
+    AR = Float64[]
+    PA = Float64[]
+    freqs = 10 .^(0:0.01:3)
+    _A = AF(m[i])
+    _B = BF(m[i])
+    _C = CF(m[i])
+    _D = DF(m[i])
+    TF(s) = (_C'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D')[in_dict[third_damper[:vin].Sf]]
+    res = TF.(freqs.*1im)./ps[car[:b1].R]
+    AR = abs.(res)
+    PA = rad2deg.(angle.(res))
+    plot!(AR_plot, freqs, AR, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
+    plot!(PA_plot, freqs, PA, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
+end
+
+plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), xscale = :log10, ylims = (0, 4))
+plot!(PA_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), xscale = :log10, ylims = (-400, 100))
+plot!(AR_plot, PA_plot, layout = (2, 1), size = (800, 500))
