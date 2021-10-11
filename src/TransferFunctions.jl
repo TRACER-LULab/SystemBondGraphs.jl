@@ -1,7 +1,7 @@
 """
 Construct the transfer function for the Bond Graph with `s` as the Laplace Variable for a linear system of the form \$\\dot{\\vec{x}} = \\boldsymbol{A}\\vec{x}+\\boldsymbol{B}\\vec{u}\$
 """
-function state_space(BG::BondGraph, input, outputs; ps = Dict{Any, Any}())
+function state_space(BG::BondGraph; ps = Dict{Any, Any}())
     state_vars = states(BG.model)
     eqns = equations(BG.model)
     eqns = map(eqn -> expand(substitute(eqn, ps)), eqns)

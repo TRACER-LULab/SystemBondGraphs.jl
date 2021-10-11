@@ -10,10 +10,12 @@ third_damper = BondGraph(t)
 add_Sf!(third_damper, :vin)
 add_C!(third_damper, :kt1)
 add_Bond!(third_damper, :b3)
-add_0J!(third_damper, Dict(
+add_0J!(third_damper, 
+Dict(
     :vin => true,
     :kt1 => false,
-    :b3 => false),
+    :b3 => false)
+    ,
     :J01)
 add_I!(third_damper, :mus1)
 add_Se!(third_damper, :musg1)
@@ -100,7 +102,7 @@ add_0J!(third_damper, Dict(
     ),
     :J05)
 
-# Generate and Simplify Model
+## Generate and Simplify Model
 generate_model!(third_damper)
 third_damper.model = structural_simplify(third_damper.model)
 
@@ -121,7 +123,7 @@ ps = Dict{Num , Real}(
     )
 
 # Get A & B state_matrices
-A, B, C, D, sts, ins, obs = state_space(third_damper, third_damper[:vin].Sf, third_damper[:ms].e, ps = ps)
+A, B, C, D, sts, ins, obs = state_space(third_damper, ps = ps)
 _A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
 AF(mus) = reshape(_A_func([mus]), size(A))
 _B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
@@ -130,7 +132,7 @@ _C_func = eval(build_function(C,[mus],parallel=Symbolics.MultithreadedForm())[1]
 CF(mus) = reshape(_C_func([mus]), size(C))
 _D_func = eval(build_function(D,[mus],parallel=Symbolics.MultithreadedForm())[1])
 DF(mus) = reshape(_D_func([mus]), size(D))
-# Adjustment to Match MATLAB Code
+## Adjustment to Match MATLAB Code
 # A[2, 6] = -A[2, 6]
 # A[6, 2] = -A[6, 2]
 
@@ -141,7 +143,7 @@ linetype = [:solid, :dash, :dot]
 m = [25.0, 50.0, 75.0]
 in_var = third_damper[:vin].Sf
 out_var = third_damper[:ms].e
-for i ∈ eachindex(m)
+for i in eachindex(m)
     freqs = 10 .^(0:0.01:3)
     _A = AF(m[i])
     _B = BF(m[i])
@@ -151,16 +153,17 @@ for i ∈ eachindex(m)
     res = TF.(freqs.*1im)./ps[third_damper[:b1].R]
     AR = abs.(res)
     PA = rad2deg.(angle.(res))
-    plot!(AR_plot, freqs, AR, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
-    plot!(PA_plot, freqs, PA, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
+    plot!(AR_plot, freqs./2π, AR, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
+    plot!(PA_plot, freqs./2π, PA, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
 end
-scatter(fft(AR))
-plot!(phase)
+# scatter(fft(AR))
+# plot!(phase)
 plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :topleft, xscale = :log10, xlabel = "Frequency [rad/s]", ylabel = "AR [(Fₘₛ+mₛg)/(Vᵢₙb₁)]")
 plot!(PA_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :bottomleft, xscale = :log10, xlabel = "Frequency [rad/s]", ylabel = "Phase Angle [∘]")
 plot!(AR_plot, PA_plot, layout = (2, 1), size = (800, 500))
 
-##
+## Normal Car
+
 @parameters t
 car = BondGraph(t)
 # Build Bond Graph
@@ -268,7 +271,7 @@ ps = Dict{Num , Real}(
 
 # Get A & B state_matrices
 @variables s
-A, B, C, D, sts, ins = state_space(car, car[:vin].Sf, car[:ms].e, ps = ps)
+A, B, C, D, sts, ins = state_space(car, ps = ps)
 _A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
 AF(mus) = reshape(_A_func([mus]), size(A))
 _B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
@@ -290,7 +293,7 @@ for i ∈ eachindex(m)
     _B = BF(m[i])
     _C = CF(m[i])
     _D = DF(m[i])
-    TF(s) = (_C'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D')[in_dict[third_damper[:vin].Sf]]
+    TF(s) = (_C'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D')[in_dict[car[:vin].Sf]]
     res = TF.(freqs.*1im)./ps[car[:b1].R]
     AR = abs.(res)
     PA = rad2deg.(angle.(res))
