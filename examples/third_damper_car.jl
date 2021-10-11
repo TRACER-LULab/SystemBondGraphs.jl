@@ -271,7 +271,7 @@ ps = Dict{Num , Real}(
 
 # Get A & B state_matrices
 @variables s
-A, B, C, D, sts, ins = state_space(car, ps = ps)
+A, B, C, D, sts, ins, obs = state_space(car, ps = ps)
 _A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
 AF(mus) = reshape(_A_func([mus]), size(A))
 _B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
@@ -285,20 +285,20 @@ m = [25.0, 50.0, 75.0]
 # AR_plot = plot()
 # PA_plot = plot()
 linetype = [:solid, :dash, :dot]
+in_var = car[:vin].Sf
+out_var = car[:ms].e
 for i ∈ eachindex(m)
-    AR = Float64[]
-    PA = Float64[]
     freqs = 10 .^(0:0.01:3)
     _A = AF(m[i])
     _B = BF(m[i])
     _C = CF(m[i])
     _D = DF(m[i])
-    TF(s) = (_C'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D')[in_dict[car[:vin].Sf]]
+    TF(s) = (_C[obs[out_var], :]'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D[obs[out_var], :]')[in_dict[car[:vin].Sf]]
     res = TF.(freqs.*1im)./ps[car[:b1].R]
     AR = abs.(res)
     PA = rad2deg.(angle.(res))
-    plot!(AR_plot, freqs, AR, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
-    plot!(PA_plot, freqs, PA, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
+    plot!(AR_plot, freqs./2π, AR, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
+    plot!(PA_plot, freqs./2π, PA, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
 end
 
 plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), xscale = :log10, ylims = (0, 4))
