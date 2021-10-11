@@ -121,9 +121,7 @@ ps = Dict{Num , Real}(
     )
 
 # Get A & B state_matrices
-A, B, C, D, sts, ins = state_space(third_damper, third_damper[:vin].Sf,   third_damper[:ms].e, ps = ps);
-in_dict = Dict(ins .=> eachindex(ins))
-sts_dict = Dict(sts .=> eachindex(sts))
+A, B, C, D, sts, ins, obs = state_space(third_damper, third_damper[:vin].Sf, third_damper[:ms].e, ps = ps)
 _A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
 AF(mus) = reshape(_A_func([mus]), size(A))
 _B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
@@ -141,23 +139,25 @@ AR_plot = plot()
 PA_plot = plot()
 linetype = [:solid, :dash, :dot]
 m = [25.0, 50.0, 75.0]
+in_var = third_damper[:vin].Sf
+out_var = third_damper[:ms].e
 for i ∈ eachindex(m)
     freqs = 10 .^(0:0.01:3)
     _A = AF(m[i])
-    # _A[2, 6] = -_A[2, 6]
-    # _A[6, 2] = -_A[6, 2]
     _B = BF(m[i])
     _C = CF(m[i])
     _D = DF(m[i])
-    TF(s) = (_C'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D')[in_dict[third_damper[:vin].Sf]]
+    TF(s) = (_C[obs[out_var], :]'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D[obs[out_var], :]')[ins[in_var]]
     res = TF.(freqs.*1im)./ps[third_damper[:b1].R]
     AR = abs.(res)
     PA = rad2deg.(angle.(res))
     plot!(AR_plot, freqs, AR, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
     plot!(PA_plot, freqs, PA, label = "3rd Damper - "*string(m[i]), linestyle = linetype[i], color = :blue)
 end
-plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :topleft, xscale = :log10, xlabel = "Frequency [rad/s]", ylabel = "AR [(Fₘₛ+mₛg)/(Vᵢₙb₁)]", ylims = (0, 4))
-plot!(PA_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :bottomleft, xscale = :log10, ylims = (-400, 100), xlabel = "Frequency [rad/s]", ylabel = "Phase Angle [∘]")
+scatter(fft(AR))
+plot!(phase)
+plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :topleft, xscale = :log10, xlabel = "Frequency [rad/s]", ylabel = "AR [(Fₘₛ+mₛg)/(Vᵢₙb₁)]")
+plot!(PA_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), legend = :bottomleft, xscale = :log10, xlabel = "Frequency [rad/s]", ylabel = "Phase Angle [∘]")
 plot!(AR_plot, PA_plot, layout = (2, 1), size = (800, 500))
 
 ##
@@ -268,9 +268,7 @@ ps = Dict{Num , Real}(
 
 # Get A & B state_matrices
 @variables s
-A, B, C, D, sts, ins = state_space(car, car[:vin].Sf, car[:ms].e, ps = ps);
-in_dict = Dict(ins .=> eachindex(ins))
-sts_dict = Dict(sts .=> eachindex(sts))
+A, B, C, D, sts, ins = state_space(car, car[:vin].Sf, car[:ms].e, ps = ps)
 _A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
 AF(mus) = reshape(_A_func([mus]), size(A))
 _B_func = eval(build_function(B,[mus],parallel=Symbolics.MultithreadedForm())[1])
