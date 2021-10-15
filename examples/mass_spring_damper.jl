@@ -1,7 +1,7 @@
 using BondGraphs
 using DifferentialEquations
 using ModelingToolkit
-using CairoMakie
+using Plots
 ## Specify Time Parameter
 @parameters t
 ## Create Empty BondGraph
@@ -10,7 +10,9 @@ msd = BondGraph(t)
 add_R!(msd, :R_1) 
 add_C!(msd, :C_1)
 add_I!(msd, :I_1)
-add_Se!(msd, :Se)
+@parameters α ω
+vin(e, f, t, p) = p[1]*sin(t*p[2])
+add_Se!(msd, vin, [α,ω], :Se)
 ## Add Junction Connection Elements 
 add_1J!(msd,
     Dict(
@@ -33,12 +35,10 @@ ps = [
     msd[:R_1].R => 1.0,
     msd[:C_1].C => 1.0,
     msd[:I_1].I => 1.0,
-    msd[:Se].Se => 1.0
+    msd[:Se].α => 1.0,
+    msd[:Se].ω => 1.0,
     ]
 tspan = (0.0, 20.0)
 prob = ODAEProblem(msd.model, u0, tspan, ps)
-sol = solve(prob, Tsit5())
-## Generate Transfer Function
-@parameters s
-tf = transfer_function(msd, s)
-tf[msd[:C_1].q, msd[:Se].Se] |> expand |> simplify
+sol = ModelingToolkit.solve(prob)
+plot(sol, vars = [msd[:R_1].e])

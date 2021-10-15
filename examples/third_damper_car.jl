@@ -7,7 +7,9 @@ using LinearAlgebra
 @parameters t
 # Create Empty Bondgraph
 third_damper = BondGraph(t)
-add_Sf!(third_damper, :vin)
+@parameters α ω
+vin(e, f, t, p) = p[1]*sin(ω*t)
+add_Sf!(third_damper, vin, [α, ω], :vin)
 add_C!(third_damper, :kt1)
 add_Bond!(third_damper, :b3)
 add_0J!(third_damper, 
@@ -109,9 +111,14 @@ third_damper.model = structural_simplify(third_damper.model)
 # Set Parameters for study
 @variables mus
 ps = Dict{Num , Real}(
+    third_damper[:vin].α   => 0.01,
+    third_damper[:vin].ω   => 1.0,
     third_damper[:ms].I     => 680.0,
     third_damper[:mus1].I   => mus,
     third_damper[:mus2].I   => mus,
+    third_damper[:musg1].Se   => mus*9.81,
+    third_damper[:musg2].Se   => mus*9.81,
+    third_damper[:msg].Se   => 680.0*9.81,
     third_damper[:k1].C     => 1/32_000,
     third_damper[:k2].C     => 1/32_000,
     third_damper[:kt1].C    => 1/360_000,
@@ -120,9 +127,25 @@ ps = Dict{Num , Real}(
     third_damper[:b1].R     => 2798.86,
     third_damper[:b2].R     => 2798.86,
     third_damper[:b].R      => 1119.54,
+    mus                     => 75.0
     )
 
-# Get A & B state_matrices
+u0 = Dict{Num, Real}(
+    third_damper[:k].q => 0.0,
+    third_damper[:k1].q => 0.0,
+    third_damper[:k2].q => 0.0,
+    third_damper[:kt1].q => 0.0,
+    third_damper[:kt2].q => 0.0,
+    third_damper[:mus1].p => 0.0,
+    third_damper[:mus2].p => 0.0,
+    third_damper[:ms].p => 0.0,
+)
+
+tspan = (0.0, 20.0)
+prob = ODAEProblem(third_damper.model, u0, tspan, ps)
+sol = solve(prob)
+plot(sol, vars = [third_damper[:ms].p])
+## Get A & B state_matrices
 A, B, C, D, sts, ins, obs = state_space(third_damper, ps = ps)
 _A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
 AF(mus) = reshape(_A_func([mus]), size(A))
@@ -142,14 +165,14 @@ PA_plot = plot()
 linetype = [:solid, :dash, :dot]
 m = [25.0, 50.0, 75.0]
 in_var = third_damper[:vin].Sf
-out_var = third_damper[:ms].e
+out_var = third_damper[:mus1].e
 for i in eachindex(m)
     freqs = 10 .^(0:0.01:3)
     _A = AF(m[i])
     _B = BF(m[i])
     _C = CF(m[i])
     _D = DF(m[i])
-    TF(s) = (_C[obs[out_var], :]'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D[obs[out_var], :]')[ins[in_var]]
+    TF(s) = (_C*(s*I(size(_A, 1))-_A)^(-1)*_B+_D)[obs[out_var], ins[in_var]]
     res = TF.(freqs.*1im)./ps[third_damper[:b1].R]
     AR = abs.(res)
     PA = rad2deg.(angle.(res))
@@ -250,7 +273,7 @@ add_0J!(car, Dict(
     ),
     :J04) 
 
-# Generate Model
+## Generate Model
 generate_model!(car)
 car.model = structural_simplify(car.model)
 
@@ -284,23 +307,24 @@ DF(mus) = reshape(_D_func([mus]), size(D))
 m = [25.0, 50.0, 75.0]
 # AR_plot = plot()
 # PA_plot = plot()
+##
 linetype = [:solid, :dash, :dot]
 in_var = car[:vin].Sf
-out_var = car[:ms].e
+out_var = car[:mus1].e
 for i ∈ eachindex(m)
     freqs = 10 .^(0:0.01:3)
     _A = AF(m[i])
     _B = BF(m[i])
     _C = CF(m[i])
     _D = DF(m[i])
-    TF(s) = (_C[obs[out_var], :]'*(s*I(size(_A, 1))-_A)^(-1)*_B+_D[obs[out_var], :]')[in_dict[car[:vin].Sf]]
+    TF(s) = (_C*(s*I(size(_A, 1))-_A)^(-1)*_B+_D)[obs[out_var], ins[in_var]]
     res = TF.(freqs.*1im)./ps[car[:b1].R]
     AR = abs.(res)
-    PA = rad2deg.(angle.(res))
+    PA = rad2deg.(atan.(imag.(res), real.(res)))
     plot!(AR_plot, freqs./2π, AR, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
     plot!(PA_plot, freqs./2π, PA, label = "Conventional - "*string(m[i]), linestyle = linetype[i], color = :red)
 end
 
-plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), xscale = :log10, ylims = (0, 4))
-plot!(PA_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), xscale = :log10, ylims = (-400, 100))
+plot!(AR_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), xscale = :log10)
+plot!(PA_plot, size = (400,100).*2, xtick = 10 .^ (0:1:5), xscale = :log10)
 plot!(AR_plot, PA_plot, layout = (2, 1), size = (800, 500))
