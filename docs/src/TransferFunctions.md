@@ -1,3 +1,3 @@
 ```@docs
-transfer_function(BG::BondGraph, s)
+state_space(BG::BondGraph; ps = Dict{Any, Any}())
 ```

@@ -1,10 +1,9 @@
-import Pkg; Pkg.add("Documenter")
-
+import Pkg; Pkg.activate("."); Pkg.instantiate()
 using Documenter
 using BondGraphs
-Pkg.add("ModelingToolkit")
+# Pkg.add("ModelingToolkit")
 using ModelingToolkit
-Pkg.add("MetaGraphs")
+# Pkg.add("MetaGraphs")
 using MetaGraphs
 
 makedocs(

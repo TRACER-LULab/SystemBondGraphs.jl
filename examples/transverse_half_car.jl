@@ -1,6 +1,6 @@
 using BondGraphs
 using ModelingToolkit
-using GLMakie
+using Plots
 using DifferentialEquations
 ## Problem Independent Variable
 @parameters t

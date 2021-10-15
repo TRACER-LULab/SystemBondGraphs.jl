@@ -8,6 +8,7 @@ using LinearAlgebra
 using LightGraphs
 using MetaGraphs
 using FileIO
+using Documenter
 ## TODO: Develop better model parameter handling avoid structs of structs....
 ## TODO: Better interface with LightGraphs and Flux
 export BondGraph,
