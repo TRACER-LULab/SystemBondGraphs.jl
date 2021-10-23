@@ -5,7 +5,7 @@ using ModelingToolkit
 using SymbolicUtils
 using Symbolics
 using LinearAlgebra
-using LightGraphs
+using Graphs
 using MetaGraphs
 using FileIO
 using Documenter
@@ -20,14 +20,8 @@ export BondGraph,
         add_C_multiport!, add_I_multiport!,
         generate_model!,
         state_space,
-        # state_matrices, TF_AB,
         get_graph, savebondgraph, loadbondgraph
-        # check_lhs,
-        # check_rhs,
-        # get_args,
-        # get_implicit,
-        # get_diff,
-        # resolve_derivative_causality!,
+
 ## Function to create a generic Model
 mutable struct BondGraph
     graph::MetaDiGraph
