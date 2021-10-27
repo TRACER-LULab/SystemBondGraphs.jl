@@ -1,8 +1,6 @@
-2+2
 ##
 using BondGraphs
 using ModelingToolkit
-using CairoMakie
 using DifferentialEquations
 using IfElse
 

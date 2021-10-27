@@ -3,13 +3,13 @@
 Create a Symbolic/Constant Effort Input. Creates a system with parameters `Se` for the ODESystem.
 """
 function add_Se!(BG::BondGraph, name)
+    add_vertex!(BG.graph)
+    node_index = nv(BG.graph)
+    set_prop!(BG.graph, nv(BG.graph), :name, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     @parameters Se(BG.model.iv)
     eqns = [0 ~ e - Se]
     sys = ODESystem(eqns, BG.model.iv, [e, f], [Se], name = name)
-    add_vertex!(BG.graph)
-    node_index = nv(BG.graph)
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
     props = Dict(
         :type => :Se,
         :sys => sys,

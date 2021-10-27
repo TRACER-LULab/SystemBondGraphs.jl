@@ -8,8 +8,9 @@ using LinearAlgebra
 # Create Empty Bondgraph
 third_damper = BondGraph(t)
 @parameters α ω
-vin(e, f, t, p) = p[1]*sin(ω*t)
-add_Sf!(third_damper, vin, [α, ω], :vin)
+# vin(e, f, t, p) = p[1]*sin(ω*t)
+# add_Sf!(third_damper, vin, [α, ω], :vin)
+add_Sf!(third_damper, :vin)
 add_C!(third_damper, :kt1)
 add_Bond!(third_damper, :b3)
 add_0J!(third_damper, 
@@ -109,10 +110,10 @@ generate_model!(third_damper)
 third_damper.model = structural_simplify(third_damper.model)
 
 # Set Parameters for study
-@variables mus
+@variables mus Sf1
 ps = Dict{Num , Real}(
-    third_damper[:vin].α   => 0.01,
-    third_damper[:vin].ω   => 1.0,
+    # third_damper[:vin].α   => 0.01,
+    # third_damper[:vin].ω   => 1.0,
     third_damper[:ms].I     => 680.0,
     third_damper[:mus1].I   => mus,
     third_damper[:mus2].I   => mus,
@@ -127,7 +128,6 @@ ps = Dict{Num , Real}(
     third_damper[:b1].R     => 2798.86,
     third_damper[:b2].R     => 2798.86,
     third_damper[:b].R      => 1119.54,
-    mus                     => 75.0
     )
 
 u0 = Dict{Num, Real}(
@@ -144,7 +144,7 @@ u0 = Dict{Num, Real}(
 tspan = (0.0, 20.0)
 prob = ODAEProblem(third_damper.model, u0, tspan, ps)
 sol = solve(prob)
-plot(sol, vars = [third_damper[:ms].p])
+
 ## Get A & B state_matrices
 A, B, C, D, sts, ins, obs = state_space(third_damper, ps = ps)
 _A_func = eval(build_function(A,[mus],parallel=Symbolics.MultithreadedForm())[1])
@@ -159,13 +159,13 @@ DF(mus) = reshape(_D_func([mus]), size(D))
 # A[2, 6] = -A[2, 6]
 # A[6, 2] = -A[6, 2]
 
-# Plotting
+## Plotting
 AR_plot = plot()
 PA_plot = plot()
 linetype = [:solid, :dash, :dot]
 m = [25.0, 50.0, 75.0]
 in_var = third_damper[:vin].Sf
-out_var = third_damper[:mus1].e
+out_var = third_damper[:ms].e
 for i in eachindex(m)
     freqs = 10 .^(0:0.01:3)
     _A = AF(m[i])
@@ -310,7 +310,7 @@ m = [25.0, 50.0, 75.0]
 ##
 linetype = [:solid, :dash, :dot]
 in_var = car[:vin].Sf
-out_var = car[:mus1].e
+out_var = car[:ms].e
 for i ∈ eachindex(m)
     freqs = 10 .^(0:0.01:3)
     _A = AF(m[i])

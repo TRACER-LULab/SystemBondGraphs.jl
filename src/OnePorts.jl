@@ -45,17 +45,17 @@ end
 Create a nonlinear R-Element with \$\\Phi_r\$ registered with modelingtoolkit.jl to prevent simplification through the nonlinear function. \$e = \\Phi_r(e, f, t, ps)\$. Params are for any parameters to the nonlinear function. 
 """
 function add_R!(BG::BondGraph, Φr, ps, name; causality = false)
+    add_vertex!(BG.graph)
+    set_prop!(BG.graph, nv(BG.graph), :name, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     eqns = [e ~ Φr(e, f, BG.model.iv, ps)]
     sys = ODESystem(eqns, BG.model.iv, [e, f], ps, name = name)
-    add_vertex!(BG.graph)
     props = Dict(
             :type => :R,
             :sys => sys,
             :causality => causality,
             :state_var => []
             )
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
     set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end

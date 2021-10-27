@@ -1,7 +1,6 @@
 using BondGraphs
 using DifferentialEquations
 using ModelingToolkit
-using Plots
 ## Specify Time Parameter
 @parameters t
 ## Create Empty BondGraph
@@ -23,13 +22,13 @@ add_1J!(msd,
     ),
     :J1);
 ## Traverse Graph and Generate Model
-generate_model!(msd)
+model = generate_model(msd)
 ## Utilizing Modeling Toolkit to simplify Model
-msd.model = structural_simplify(msd.model)
+model = structural_simplify(model)
 ## Normal ModelingToolkit.jl/DifferentialEquations.jl Solving
 u0 = [
     msd[:C_1].q => 0.0,
-    msd[:I_1].p => -1.0
+    msd[:I_1].p => 1.0
     ]
 ps = [
     msd[:R_1].R => 1.0,
@@ -39,6 +38,5 @@ ps = [
     msd[:Se].ω => 1.0,
     ]
 tspan = (0.0, 20.0)
-prob = ODAEProblem(msd.model, u0, tspan, ps)
-sol = ModelingToolkit.solve(prob)
-plot(sol, vars = [msd[:R_1].e])
+prob = ODAEProblem(model, u0, tspan, ps)
+sol = solve(prob)

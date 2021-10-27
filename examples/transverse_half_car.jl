@@ -1,6 +1,5 @@
 using BondGraphs
 using ModelingToolkit
-using Plots
 using DifferentialEquations
 ## Problem Independent Variable
 @parameters t
@@ -10,7 +9,7 @@ halfcar = BondGraph(t)
 
 ## Create non-linear Input Function
 @parameters ω α
-v_in(t, p) = p[1] * sin(p[2] * t)
+v_in(e, f, t, p) = p[1] * sin(p[2] * t)
 
 ## Add bondgraph elements
 add_Sf!(halfcar, v_in, [α, ω], :sf1)
@@ -111,10 +110,7 @@ add_0J!(halfcar, Dict([
 ## Set problem parameters
 generate_model!(halfcar)
 halfcar.model = structural_simplify(halfcar.model)
-@parameters s
-transfer_function(halfcar, s)
-# # simplify_model!(halfcar)
-# Units and Distributions are Automatically Compatible with the bondgraph package
+## Units and Distributions are Automatically Compatible with the bondgraph package
 u0 = [
 halfcar[:c2].q  => 0.0,
 halfcar[:c8].q  => 0.0,
@@ -148,4 +144,3 @@ halfcar[:r25].R  => 1.0,
 tspan = (0.0, 10.0)
 prob = ODAEProblem(halfcar.model, u0, tspan, ps)
 sol = solve(prob, Rodas4())
-lines(sol.t, sol[halfcar[:c2].q])
