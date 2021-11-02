@@ -72,6 +72,7 @@ include("TwoPorts.jl")
 include("MultiPorts.jl")
 include("DerivativeCausality.jl")
 include("TransferFunctions.jl")
+include("Reactions.jl")
 """
 
 Generate an ODE System from the BondGraph Structure
@@ -106,12 +107,12 @@ function generate_model!(BG::BondGraph)
     @named junc_sys = ODESystem(eqns, BG.model.iv, [], [])
     BG.model = extend(junc_sys, BG.model)
 
-    two_ports = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:TF, :GY, :MTF, :MGY])
+    two_ports = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:Re, :TF, :GY, :MTF, :MGY])
     two_ports_sys = map(v -> get_prop(BG.graph, v, :sys), two_ports)
     for sys ∈ two_ports_sys
         BG.model = extend(sys, BG.model)
     end
-    element_verts = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:B, :R, :C, :I, :M, :Se, :Sf, :MPC, :MPI, :MPR])
+    element_verts = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:B, :R, :C, :I, :M, :Ce, :Se, :Sf, :MPC, :MPI, :MPR])
     element_sys = map(v -> get_prop(BG.graph, v, :sys), element_verts)
     BG.model = compose(BG.model, element_sys...)
     nothing
@@ -146,12 +147,13 @@ function generate_model(BG::BondGraph)
     @named junc_sys = ODESystem(eqns, BG.model.iv, [], [])
     BG.model = extend(junc_sys, BG.model)
 
-    two_ports = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:TF, :GY, :MTF, :MGY])
+    two_ports = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:Re, :TF, :GY, :MTF, :MGY])
     two_ports_sys = map(v -> get_prop(BG.graph, v, :sys), two_ports)
     for sys ∈ two_ports_sys
         BG.model = extend(sys, BG.model)
     end
-    element_verts = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:B, :R, :C, :I, :M, :Se, :Sf, :MPC, :MPI, :MPR])
+
+    element_verts = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:B, :R, :C, :I, :M, :Ce, :Se, :Sf, :MPC, :MPI, :MPR])
     element_sys = map(v -> get_prop(BG.graph, v, :sys), element_verts)
     compose(BG.model, element_sys...)
 end
