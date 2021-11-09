@@ -1,7 +1,7 @@
 using BondGraphs
 using ModelingToolkit
 using DifferentialEquations
-using Plots
+# using Plots
 using LinearAlgebra
 ## Analysis for Third Damper Model
 @parameters t
@@ -138,7 +138,7 @@ u0 = Dict{Num, Real}(
     third_damper[:kt2].q => 0.0,
     third_damper[:mus1].p => 0.0,
     third_damper[:mus2].p => 0.0,
-    third_damper[:ms].p => 0.0,
+    third_damper[:ms].p => 0.0,#
 )
 
 tspan = (0.0, 20.0)

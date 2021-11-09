@@ -11,8 +11,8 @@ function add_TF!(BG::BondGraph, m, in, out, name)
     add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])
 
     eqns = [
-        0 ~ BG[in].e - m * BG[out].e, 
-        0 ~ m * BG[in].f - BG[out].f
+        0 ~ ParentScope(BG[in].e) - m * ParentScope(BG[out].e), 
+        0 ~ m * ParentScope(BG[in].f) - ParentScope(BG[out].f)
     ]
 
     sys = ODESystem(eqns, BG.model.iv, name = name)
@@ -37,8 +37,8 @@ function add_GY!(BG, r, in, out, name)
     add_edge!(BG.graph, BG.graph[name, :name], BG.graph[in, :name])
     add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])
     eqns = [
-        0 ~ BG[in].e - r * BG[out].f, 
-        0 ~ r * BG[in].f - BG[out].e
+        0 ~ ParentScope(BG[in].e) - r * ParentScope(BG[out].f), 
+        0 ~ r * ParentScope(BG[in].f) - ParentScope(BG[out].e)
     ]
     sys = ODESystem(eqns, BG.model.iv, name = name)
     add_vertex!(BG.graph)
@@ -65,8 +65,8 @@ function add_MTF!(BG::BondGraph, m, in, out, name)
     add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])
 
     eqns = [
-        0 ~ BG[in].e - m * BG[out].e, 
-        0 ~ m * BG[in].f - BG[out].f
+        0 ~ ParentScope(BG[in].e) - m * ParentScope(BG[out].e), 
+        0 ~ m * ParentScope(BG[in].f) - ParentScope(BG[out].f)
     ]
     sys = ODESystem(eqns, BG.model.iv, name = name)
     props = Dict(
@@ -92,8 +92,8 @@ function add_MGY!(BG::BondGraph, r, in, out, name)
     add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])
 
     eqns = [
-        0 ~ BG[in].e - r * BG[out].f, 
-        0 ~ r * BG[in].f - BG[out].e
+        0 ~ ParentScope(BG[in].e) - r * ParentScope(BG[out].f), 
+        0 ~ r * ParentScope(BG[in].f) - ParentScope(BG[out].e)
     ]
     sys = ODESystem(eqns, BG.model.iv, name = name)
     props = Dict(

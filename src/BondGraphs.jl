@@ -79,43 +79,7 @@ Generate an ODE System from the BondGraph Structure
 
 """
 function generate_model!(BG::BondGraph)
-    # Find all One Junction Nodes
-    one_junctions = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:J1])
-    eqns = Equation[]
-    for J1 ∈ one_junctions
-        out_nodes = outneighbors(BG.graph.graph, J1)
-        in_nodes = inneighbors(BG.graph, J1)
-        push!(eqns, 0 ~ sum(x->BG[x].e, in_nodes)-sum(x->BG[x].e, out_nodes))
-        nodes = [out_nodes; in_nodes]
-        for i ∈ 2:length(nodes)
-            push!(eqns, BG[nodes[i-1]].f ~ BG[nodes[i]].f)
-        end
-    end
-
-    # Find all Zero Junction Nodes
-    zero_junctions = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:J0])
-    for J0 ∈ zero_junctions
-        out_nodes = outneighbors(BG.graph, J0)
-        in_nodes = inneighbors(BG.graph, J0)
-        push!(eqns, 0 ~ sum(x->BG[x].f, in_nodes)-sum(x->BG[x].f, out_nodes))
-        nodes = [out_nodes; in_nodes]
-        for i ∈ 2:length(nodes)
-            push!(eqns, BG[nodes[i-1]].e ~ BG[nodes[i]].e)
-        end
-    end
-
-    @named junc_sys = ODESystem(eqns, BG.model.iv, [], [])
-    BG.model = extend(junc_sys, BG.model)
-
-    two_ports = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:Re, :TF, :GY, :MTF, :MGY])
-    two_ports_sys = map(v -> get_prop(BG.graph, v, :sys), two_ports)
-    for sys ∈ two_ports_sys
-        BG.model = extend(sys, BG.model)
-    end
-    element_verts = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:B, :R, :C, :I, :M, :Ce, :Se, :Sf, :MPC, :MPI, :MPR])
-    element_sys = map(v -> get_prop(BG.graph, v, :sys), element_verts)
-    BG.model = compose(BG.model, element_sys...)
-    nothing
+    BG.model = generate_model(BG)
 end
 
 function generate_model(BG::BondGraph)
@@ -123,34 +87,52 @@ function generate_model(BG::BondGraph)
     one_junctions = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:J1])
     eqns = Equation[]
     for J1 ∈ one_junctions
-        out_nodes = outneighbors(BG.graph.graph, J1)
+        out_nodes = outneighbors(BG.graph, J1)
         in_nodes = inneighbors(BG.graph, J1)
-        push!(eqns, 0 ~ sum(x->BG[x].e, in_nodes)-sum(x->BG[x].e, out_nodes))
+        if !isempty(out_nodes)
+            out_sum = sum(x->BG[x].e, out_nodes)
+        else 
+            out_sum = 0
+        end
+        if !isempty(in_nodes)
+            in_sum =  sum(x->BG[x].e, in_nodes)
+        else 
+            in_sum = 0
+        end
+        push!(eqns, 0 ~ in_sum-out_sum)
         nodes = [out_nodes; in_nodes]
         for i ∈ 2:length(nodes)
             push!(eqns, BG[nodes[i-1]].f ~ BG[nodes[i]].f)
         end
     end
-
     # Find all Zero Junction Nodes
     zero_junctions = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:J0])
     for J0 ∈ zero_junctions
         out_nodes = outneighbors(BG.graph, J0)
         in_nodes = inneighbors(BG.graph, J0)
-        push!(eqns, 0 ~ sum(x->BG[x].f, in_nodes)-sum(x->BG[x].f, out_nodes))
+        if !isempty(out_nodes)
+            out_sum = sum(x->BG[x].f, out_nodes)
+        else 
+            out_sum = 0
+        end
+        if !isempty(in_nodes)
+            in_sum =  sum(x->BG[x].f, in_nodes)
+        else 
+            in_sum = 0
+        end
+        push!(eqns, 0 ~ in_sum-out_sum)
         nodes = [out_nodes; in_nodes]
         for i ∈ 2:length(nodes)
             push!(eqns, BG[nodes[i-1]].e ~ BG[nodes[i]].e)
         end
     end
-
     @named junc_sys = ODESystem(eqns, BG.model.iv, [], [])
-    BG.model = extend(junc_sys, BG.model)
+    BG.model = extend(BG.model, junc_sys)
 
     two_ports = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:Re, :TF, :GY, :MTF, :MGY])
     two_ports_sys = map(v -> get_prop(BG.graph, v, :sys), two_ports)
     for sys ∈ two_ports_sys
-        BG.model = extend(sys, BG.model)
+        BG.model = compose(BG.model, sys)
     end
 
     element_verts = filter_vertices(BG.graph,  (g, v) -> get_prop(g, v, :type) ∈ [:B, :R, :C, :I, :M, :Ce, :Se, :Sf, :MPC, :MPI, :MPR])

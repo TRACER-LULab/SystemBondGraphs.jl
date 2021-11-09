@@ -26,7 +26,7 @@ add_Flowstat!(BG::BondGraph, Se, params::Vector{}, name) = add_Sf!(BG::BondGraph
 """
 Create a "Linear" Concentration-Element for analysis. Setting Causality to true represents the elements being in derivative causality. 
 """
-function add_Ce!(BG::BondGraph, name; causality = false)
+function add_Ce!(BG::BondGraph, name; Rval = 1.0, Tval = 1.0, causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) q(BG.model.iv)
     @parameters R T k
     D = Differential(BG.model.iv)
@@ -34,7 +34,13 @@ function add_Ce!(BG::BondGraph, name; causality = false)
             D(q) ~ f,
             e ~ R*T*log(k*q)
             ]
-    sys = ODESystem(eqns, BG.model.iv, [e, f, q], [R, T, k], name = name)
+    sys = ODESystem(
+            eqns, 
+            BG.model.iv, 
+            [e, f, q], 
+            [R, T, k], 
+            defaults = Dict(R=>Rval, T=>Tval, q=>0.0),
+            name = name)
     add_vertex!(BG.graph)
     props = Dict(
             :type => :Ce,
@@ -51,15 +57,27 @@ end
 """
 Add a reaction component between species "in" and "out" with parameters R, T, r
 """
-function add_Re!(BG::BondGraph, in, out, name; causality = false)
+function add_Re!(BG::BondGraph, in, out, name; Rval = 1.0, Tval = 1.0, causality = false)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, nv(BG.graph), :name, name)
+    add_edge!(BG.graph, BG.graph[in, :name], BG.graph[name, :name],)
+    add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])    
     @parameters R T r
+    fin = ParentScope(BG[in].f)
+    ein = ParentScope(BG[in].e)
+    fout = ParentScope(BG[out].f)
+    eout = ParentScope(BG[out].e)
     eqns = [
-        0 ~ BG[in].f + BG[out].f,
-        0 ~ BG[in].f + r*(exp(BG[in].e/R/T) - exp(BG[out].e/R/T))
+        0 ~ fin + fout,
+        0 ~ fin + r*(exp(ein/R/T) - exp(eout/R/T))
         ]
-    sys  = ODESystem(eqns, BG.model.iv, [], [R, T, r], name = name)
+    sys  = ODESystem(
+            eqns, 
+            BG.model.iv, 
+            [], 
+            [R, T, r], 
+            defaults=Dict(R=>Rval, T=>Tval, r=> 1.0),
+            name = name)
     props = Dict(
             :type => :Re,
             :sys => sys,
