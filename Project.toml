@@ -4,9 +4,13 @@ authors = ["Carson Farmer <59753859+cfarm6@users.noreply.github.com>"]
 version = "0.1.0"
 
 [deps]
+Cairo = "159f3aea-2a34-519c-b102-8c37f9878175"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+EzXML = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+Fontconfig = "186bb1d3-e1f7-5a2c-a377-96d770f13627"
+GraphIO = "aa1b3936-2fda-51b9-ab35-c553d3a640a2"
 GraphPlot = "a2cc645c-3eea-5389-862e-a155d0052231"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 Latexify = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
