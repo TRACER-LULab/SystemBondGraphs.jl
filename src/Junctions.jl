@@ -2,7 +2,7 @@
 """
 Add a 1-Junction to the bond graph, `BG`. The elements are specified with a dict of names and directions. `true` represents the element going "in" to the 1-junction. `false` represents the element going "out" from the 1-junction
 """
-function add_1J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name::Symbol)
+function add_1J!(BG::AbstractBondGraph, elements::Dict{Symbol,Bool}, name::Symbol)
     elems = collect(keys(elements))
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
@@ -33,7 +33,7 @@ end
 """
 Add a 0-Junction to the bond graph, `BG`. The elements are specified with a dict of names and directions. `true` represents the element going "in" to the 0-junction. `false` represents the element going "out" from the 0-junction
 """
-function add_0J!(BG::BondGraph, elements::Dict{Symbol,Bool}, name::Symbol)
+function add_0J!(BG::AbstractBondGraph, elements::Dict{Symbol,Bool}, name::Symbol)
     elems = collect(keys(elements))
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)

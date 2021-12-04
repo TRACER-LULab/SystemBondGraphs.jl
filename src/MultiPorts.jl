@@ -2,7 +2,7 @@
 """
 **EXPERIMENTAL!!** Create a multiport C-element. Currently only works for completely symbolic models. Needs work to be integrated with the generate model function
 """
-function add_C_multiport!(BG::BondGraph, elements, parameters, name; ϕi = (e, q, params, BG) -> [], ϕk = (e, q, params, BG) -> [])
+function add_C_multiport!(BG::AbstractBondGraph, elements, parameters, name; ϕi = (e, q, params, BG) -> [], ϕk = (e, q, params, BG) -> [])
     # Do the usual setup
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
@@ -50,7 +50,7 @@ end
 """
 **EXPERIMENTAL!!** Create a multiport I-element. Currently only works for completely symbolic models. Needs work to be integrated with the generate model function
 """
-function add_I_multiport!(BG::BondGraph, elements, parameters, name; ϕi = (p, f, params) -> [], ϕk = (p, f, params) -> [])
+function add_I_multiport!(BG::AbstractBondGraph, elements, parameters, name; ϕi = (p, f, params) -> [], ϕk = (p, f, params) -> [])
     # Do the usual setup
     D = Differential(BG.model.iv)
     # Sort Elements 

@@ -5,7 +5,7 @@ using MetaGraphs
 using Graphs
 ##
 affinity_ATP_hydrolysis = 50000 / 8.314 / 310
-S = Symbol
+S = Symbol 
 ##
 include("helpers.jl")
 include("kinase_factory.jl")
@@ -186,7 +186,7 @@ function mapk_cascade_factory!(BG, name)
 end
 ##
 @parameters t
-test = BondGraph(t)
+test = BioBondGraph(t, R=1.0, T=1.0)
 mapk_cascade_factory!(test, "")
 model = generate_model(test)
 model = structural_simplify(model, simplify = true)

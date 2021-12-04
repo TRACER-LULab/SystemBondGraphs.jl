@@ -2,7 +2,7 @@
 """
 Add a linear transformer with modulus `m`, in element name `in`, out element name `out`, and named `name`.
 """
-function add_TF!(BG::BondGraph, m, in, out, name)
+function add_TF!(BG::AbstractBondGraph, m, in, out, name)
     # @parameters m
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
@@ -30,7 +30,7 @@ end
 """
 Add a linear gyrator with modulus `r`, in element name `in`, out element name `out`, and named `name`.
 """
-function add_GY!(BG, r, in, out, name)
+function add_GY!(BG::AbstractBondGraph, r, in, out, name)
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
     set_prop!(BG.graph, node_index, :name, name)
@@ -56,7 +56,7 @@ end
 """
 Add a modulated transformer with modulus `m`, in element name `in`, out element name `out`, and named `name`.
 """
-function add_MTF!(BG::BondGraph, m, in, out, name)
+function add_MTF!(BG::AbstractBondGraph, m, in, out, name)
     # @parameters m
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
@@ -83,7 +83,7 @@ end
 """
 Add a modulated gyrator with modulus `r`, in element name `in`, out element name `out`, and named `name`.
 """
-function add_MGY!(BG::BondGraph, r, in, out, name)
+function add_MGY!(BG::AbstractBondGraph, r, in, out, name)
     # @parameters m
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)

@@ -3,7 +3,7 @@
 Create an Bond in a BondGraph to connect Junction->Junction, OnePort->TwoPort. It creates an empty bond to be a connector between elements. 
 
 """
-function add_Bond!(BG::BondGraph, name)
+function add_Bond!(BG::AbstractBondGraph, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     sys = ODESystem(Equation[], BG.model.iv, [e, f], [], name = name)
     # BG.elements[name] = Element(:B, sys, [], false)   
@@ -24,7 +24,7 @@ end
 Create a Linear R-Element for the bondgraph. Causality will always be false for an R-element since it does not have a "preferred" causality. 
 
 """
-function add_R!(BG::BondGraph, name; causality = false)
+function add_R!(BG::AbstractBondGraph, name; causality = false)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, nv(BG.graph), :name, name)
     @variables e(BG.model.iv) f(BG.model.iv)
@@ -44,7 +44,7 @@ end
 """
 Create a nonlinear R-Element with \$\\Phi_r\$ registered with modelingtoolkit.jl to prevent simplification through the nonlinear function. \$e = \\Phi_r(e, f, t, ps)\$. Params are for any parameters to the nonlinear function. 
 """
-function add_R!(BG::BondGraph, Φr, ps, name; causality = false)
+function add_R!(BG::AbstractBondGraph, Φr, ps, name; causality = false)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, nv(BG.graph), :name, name)
     @variables e(BG.model.iv) f(BG.model.iv)
@@ -63,7 +63,7 @@ end
 """
 Create a Linear C-Element for analysis. Setting Causality to true represents the elements being in derivative causality. 
 """
-function add_C!(BG::BondGraph, name; causality = false)
+function add_C!(BG::AbstractBondGraph, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) q(BG.model.iv)
     @parameters C
     D = Differential(BG.model.iv)
@@ -87,7 +87,7 @@ end
 """
 Create a Nonlinear C-Element with \$e = \\phi_c(e, f, q, t, ps)\$. Setting Causality to true represents the elements being in derivative causality. 
 """
-function add_C!(BG::BondGraph, Φc, ps, name; causality = false)
+function add_C!(BG::AbstractBondGraph, Φc, ps, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) q(BG.model.iv)
     D = Differential(BG.model.iv)
     eqns = [
@@ -111,7 +111,7 @@ end
 """
 Create a Linear I-Element, setting the casuality to true signifies that the element is in derivative causality
 """
-function add_I!(BG::BondGraph, name; causality = false)
+function add_I!(BG::AbstractBondGraph, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv)
     @parameters I
     D = Differential(BG.model.iv)
@@ -135,7 +135,7 @@ end
 """
 Create a Nonlinear I-Element with \$f = \\phi_I(e, f, p, t, ps)\$. Setting Causality to true represents the elements being in derivative causality. 
 """
-function add_I!(BG::BondGraph, Φi, ps, name; causality = false)
+function add_I!(BG::AbstractBondGraph, Φi, ps, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv)
     D = Differential(BG.model.iv)
     eqns = [
@@ -158,7 +158,7 @@ end
 """
 Create a Linear M-element with causality being set to false. Derivative causality for M-elements is still under development. 
 """
-function add_M!(BG::BondGraph, name; causality = false)
+function add_M!(BG::AbstractBondGraph, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv) q(BG.model.iv)
     @parameters M
     D = Differential(BG.model.iv)
@@ -183,7 +183,7 @@ end
 """
 Create a Nonlinear M-Element with \$p = \\phi_M(e, f, p, q, t, ps)\$. Setting Causality to true represents the elements being in derivative causality. 
 """
-function add_M!(BG::BondGraph, Φm, ps, name; causality = false)
+function add_M!(BG::AbstractBondGraph, Φm, ps, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv) q(BG.model.iv)
     D = Differential(BG.model.iv)
     eqns = [

@@ -3,7 +3,7 @@ using ModelingToolkit
 using DifferentialEquations
 ##
 @parameters t
-sglt = BondGraph(t)
+sglt = BioBondGraph(t, R=1.0, T=1.0)
 
 # Add Species
 add_Ce!(sglt, :Co)
@@ -122,13 +122,14 @@ rw1 = RW.Fixpoint(RW.Chain([r1, r2, r3, r4, r5]))
 rw2 = RW.Prewalk(RW.Chain([r1, r2, r3, r4, r5]))
 rw3 = RW.Postwalk(RW.Chain([r1, r2, r3, r4, r5]))
 eqns = equations(model)
-defaults = model.defaults
-# eqns = map(eqn -> substitute(eqn, default_params) |> expand |> simplify, eqns)
 for i ∈ eachindex(eqns)
     eqns[i] = eqns[i].lhs ~ eqns[i].rhs |> rw3 |> rw2 |> rw1 |> expand
 end
+defaults = model.defaults
 model = ODESystem(eqns, name = :model)
-model.defaults = defaults
+for k ∈ collect(keys(defaults))
+    model.defaults[k] = defaults[k]
+end
 ## Set Simulation Conditions
 p = [
     sglt[:So].k    => 10.0777,
@@ -150,7 +151,9 @@ p = [
     sglt[:r25].r => 0.0061077
     ]
 u0 = [
-    sglt[:Co].q => 1.0
+    sglt[:CNao].q => 2.0,
+    # sglt[:So].q => 0.5
 ]
-prob = ODEProblem(model, u0, (0.0, 100.0), p, jac = true, sparse = true)
-solve(prob)
+prob = ODEProblem(model, u0, (0.0, 70.0), p, jac = true, sparse = true)
+sol = solve(prob)
+plot(sol)

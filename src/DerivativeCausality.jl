@@ -121,7 +121,7 @@ function get_implicit(state_vars, srch_eqns, alg_eqns)
     return res_eqns
 end
 
-function resolve_derivative_causality!(BG::BondGraph)
+function resolve_derivative_causality!(BG::AbstractBondGraph)
     # Find the Elements with Derivative Causality aka element.causality=true
     # constiuitive_equations = []
     eqns = equations(BG.model)

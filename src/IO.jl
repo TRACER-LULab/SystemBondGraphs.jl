@@ -1,7 +1,7 @@
 """
 Remove Unecesary fields to only save the graph structure of the bond graph. Returns a graph with only the `:name` and `:type` defined for each node. 
 """
-function get_graph(BG::BondGraph)
+function get_graph(BG::AbstractBondGraph)
     g = BG.graph
     for name in [g.vprops[i][:name] for i ∈ 1:length(keys(g.vprops))]
         rem_prop!(g, g[name, :name],  :causality)
@@ -15,7 +15,7 @@ end
 """
 Save the BondGraph to a .dot file for later analysis
 """
-function savebondgraph(fn::AbstractString, BG::BondGraph)
+function savebondgraph(fn::AbstractString, BG::AbstractBondGraph)
     MetaGraphs.savemg(fn, BG.graph)
 end
 

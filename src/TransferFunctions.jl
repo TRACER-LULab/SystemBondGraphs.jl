@@ -3,7 +3,7 @@ Construct the transfer function for the Bond Graph with `s` as the Laplace Varia
     ``\\dot{\\vec{x}} = \\boldsymbol{A}\\vec{x}+\\boldsymbol{B}\\vec{u}``   
     ``\\vec{y} = \\boldsymbol{C}\\vec{x} + \\boldsymbol{D}\\vec{u}``   
 """
-function state_space(BG::BondGraph; ps = Dict{Any, Any}())
+function state_space(BG::AbstractBondGraph; ps = Dict{Any, Any}())
     if length(states(BG.model)) == 0
         error("Model not generated. Run generate_model!")
     end
