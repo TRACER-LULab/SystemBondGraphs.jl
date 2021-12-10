@@ -20,7 +20,8 @@ add_1J!, add_0J!,
 add_C_multiport!, add_I_multiport!,
 generate_model!, generate_model,
 state_space,
-get_graph, savebondgraph, loadbondgraph
+get_graph, savebondgraph, loadbondgraph,
+remove_algebraic
 
 ## Function to create a generic Model
 abstract type AbstractBondGraph end
@@ -155,6 +156,11 @@ function generate_model(BG::AbstractBondGraph)
     compose(BG.model, element_sys...)
 end
 
+function remove_algebraic(BG::AbstractBondGraph)
+    eqns = equations(BG.model)
+    eqn_variables = []
+    map(eqn -> isa(eqn.lhs, Number), eqns)
+end
 include("IO.jl")
 
 end # module

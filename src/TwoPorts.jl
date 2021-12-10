@@ -41,7 +41,6 @@ function add_GY!(BG::AbstractBondGraph, r, in, out, name)
         0 ~ r * ParentScope(BG[in].f) - ParentScope(BG[out].e)
     ]
     sys = ODESystem(eqns, BG.model.iv, name = name)
-    add_vertex!(BG.graph)
     props = Dict(
                 :type => :GY,
                 :eqns => eqns,

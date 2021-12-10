@@ -155,7 +155,7 @@ function mapk_cascade_factory!(BG, name)
         ), S(name * "J_MKPP"))
     # Connect ATP
     add_0J!(BG, Dict(
-            S(name * "ATP") => true,
+            S(name * "ATP") => false,
             S(name * "cycle1_ATP") => false,
             S(name * "cycle2_ATP") => false,
             S(name * "cycle3_ATP") => false,
@@ -214,11 +214,6 @@ eqns[1]
 sys = ODESystem(eqns, name = :model, defaults = defaults)
 model = structural_simplify(sys, simplify = true)
 ##
-## ADDED RULES
-# @rule(sum(log, ~~xs) => log(*(~~xs)))
-# @rule(exp(log(~x)) => ~x)
-# @rule(~x*log(~y) => log((~y) ^ (~x)))
-# @rule(exp(+(~~xs))=>prod(exp, ~~xs))
 u0 = [
     test[:MKKKK].q => 3e-5,
     test[:MKKK].q => 3e-3,
@@ -237,50 +232,3 @@ Pkg.activate();
 nodenames = map(i -> string(test.graph.vprops[i][:name]), 1:nv(test.graph))
 layout = (args...) -> spring_layout(args...; C = 70)
 gplot(test.graph, nodelabel = nodenames, layout = layout, linetype = "curve")
-## 
-using Symbolics, SymbolicUtils
-##
-explog = @rule exp(log(~x)) => ~x
-loglog = @rule
-@syms x y z
-acr1 = @acrule(log(~x) + log(~y) => log(~x * ~y))
-acr1(log(x) + log(y))
-##
-@parameters t
-@variables e_0(t) e_1(t) e_2(t) e_3(t) e_4(t) e_5(t) e_6(t)
-@variables f_0(t) f_1(t) f_2(t) f_3(t) f_4(t) f_5(t) f_6(t)
-@variables x_0(t) x_1(t) x_2(t) x_3(t) x_4(t) x_5(t) x_6(t)
-D = Differential(t)
-eqn = [D(x_0) ~ -300 * x_0 + 3.75624385638826e-6 * (exp(e_0 + e_2 + e_4) - exp(e_0 + e_3 + e_5)),
-    D(x_1) ~ -300 * x_1 + 1000 * (exp(e_1 + e_3) - exp(e_1 + e_2 + e_6)),
-    D(x_2) ~ -1 * (150 * x_0 + 150 * x_1 - 3.75624385638826e-6 * exp(e_0 + e_2 + e_4) - 1000 * exp(e_1 + e_2 + e_6)),
-    D(x_3) ~ -1 * (150 * x_0 + 150 * x_1 - 1000 * exp(e_1 + e_3) - 3.75624385638826e-6 * exp(e_0 + e_3 + e_5)),
-    D(x_4) ~ -1 * (150 * x_0 - 3.75624385638826e-6 * exp(e_0 + e_2 + e_4)),
-    D(x_5) ~ -1 * (150 * x_0 - 3.75624385638826e-6 * exp(e_0 + e_3 + e_5)),
-    D(x_6) ~ -1 * (150 * x_1 - 1000 * exp(e_1 + e_2 + e_6)),
-    e_0 ~ log(x_0),
-    e_1 ~ log(x_1),
-    e_2 ~ log(x_2),
-    e_3 ~ log(x_3),
-    e_4 ~ log(x_4),
-    e_5 ~ log(x_5),
-    e_6 ~ log(x_6),
-]
-@named sys = ODESystem(eqn)
-sys = structural_simplify(sys)
-##
-file = open("equations.tex", "w")
-eqns = equations(model)
-for i ∈ eachindex(eqns)
-    write(file, latexify(eqns[i]))
-end
-close(file)
-
-
-cycle1_K_Re1₊r * cycle1_K_C₊k * cycle1_K_C₊q(t)
-+
-cycle1_K_Re2₊r * MKKKK₊k * MKKKK₊q(t) * MKKKP₊k * MKKKP₊q(t)
--
-cycle1_K_Re1₊r * MKKKK₊k * MKKKK₊q(t) * MKKK₊k * MKKK₊q(t) * exp(ATP₊Se(t))
--
-cycle1_K_Re2₊r * cycle1_K_C₊k * cycle1_K_C₊q(t)
