@@ -68,8 +68,8 @@ function add_Re!(BG::AbstractBondGraph, in, out, name; causality = false)
     fout = ParentScope(BG[out].f)
     eout = ParentScope(BG[out].e)
     eqns = [
-        0 ~ fin + fout,
-        0 ~ fin + r*(exp(ein/BG.R/BG.T) - exp(eout/BG.R/BG.T))
+        fin ~ fout,
+        fin ~ r*(exp(ein/BG.R/BG.T) - exp(eout/BG.R/BG.T))
         ]
     sys  = ODESystem(
             eqns, 

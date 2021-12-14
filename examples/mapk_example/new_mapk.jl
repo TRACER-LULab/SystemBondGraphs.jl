@@ -5,7 +5,7 @@ using MetaGraphs
 using Graphs
 ##
 affinity_ATP_hydrolysis = 50000 / 8.314 / 310
-S = Symbol 
+S = Symbol
 ##
 include("helpers.jl")
 include("kinase_factory.jl")
@@ -186,34 +186,10 @@ function mapk_cascade_factory!(BG, name)
 end
 ##
 @parameters t
-test = BioBondGraph(t, R=1.0, T=1.0)
+test = BioBondGraph(t, R = 1.0, T = 1.0)
 mapk_cascade_factory!(test, "")
 model = generate_model(test)
-model = structural_simplify(model, simplify = true)
-##
-using SymbolicUtils
-RW = SymbolicUtils.Rewriters
-r1 = @acrule log(~x) + log(~y) => log((~x) * (~y))
-r2 = @rule log(~x) - log(~y) => log((~x) / (~y))
-r3 = @rule (~x) * log(~y) => log((~y)^(~x))
-r4 = @rule exp(log(~x)) => ~x
-r5 = @acrule exp((~x) + (~y)) => exp(~x) * exp(~y)
-rw1 = RW.Fixpoint(RW.Chain([r1, r2, r3, r4, r5]))
-rw2 = RW.Prewalk(RW.Chain([r1, r2, r3, r4, r5]))
-rw3 = RW.Postwalk(RW.Chain([r1, r2, r3, r4, r5]))
-eqns = equations(model)
-defaults = model.defaults
-params = parameters(model)
-default_params = Dict(map(x -> x => defaults[x], params))
-eqns = map(eqn -> substitute(eqn, default_params) |> expand |> simplify, eqns)
-for i ∈ eachindex(eqns)
-    eqns[i] = eqns[i].lhs ~ eqns[i].rhs |> rw3 |> rw2 |> rw1 |> expand
-end
-eqns[1]
-##
-sys = ODESystem(eqns, name = :model, defaults = defaults)
-model = structural_simplify(sys, simplify = true)
-##
+## Figure 5a
 u0 = [
     test[:MKKKK].q => 3e-5,
     test[:MKKK].q => 3e-3,
@@ -222,13 +198,43 @@ u0 = [
     test[:MAPKKKPase].q => 3e-4,
     test[:MAPKKPase].q => 3e-4,
     test[:MAPKPase].q => 1.2e-1
-]
+] |> Dict
+
 tspan = (0.0, 100.0)
 prob = ODEProblem(model, u0, tspan, [])
 sol = solve(prob)
-## Plotting
-import Pkg;
-Pkg.activate();
-nodenames = map(i -> string(test.graph.vprops[i][:name]), 1:nv(test.graph))
-layout = (args...) -> spring_layout(args...; C = 70)
-gplot(test.graph, nodelabel = nodenames, layout = layout, linetype = "curve")
+mkkkq = @. 100 * sol[test[:MKKKP].q] / sol[test[:MKKK].q][begin]
+mkkq = @. 100 * sol[test[:MKKPP].q] / sol[test[:MKK].q][begin]
+mkq = @. 100 * sol[test[:MKPP].q] / sol[test[:MK].q][begin]
+plot(sol.t, [mkkkq, mkkq, mkq], ylims = (0, 100), ylabel = "Activation [%]", xlabel = "Time [s]", labels = ["MKKK" "MKK" "MK"], legend = :topleft, title = "Figure 5a")
+## Figure 5b
+init_mkkkk = 10 .^ range(-7, -1, 100)
+res = similar(init_mkkkk, (3, length(init_mkkkk)))
+u0 = Dict{Any,Float64}(states(model) .=> prob.u0)
+for index in eachindex(init_mkkkk)
+    u0[test[:MKKKK].q] = init_mkkkk[index]
+    prob = remake(prob, u0 = ModelingToolkit.varmap_to_vars(u0, states(model)), tspan = (0.0, 1000.0))
+    sol = solve(prob)
+    res[:, index] .= (sol[test[:MKKKP].q][end], sol[test[:MKKPP].q][end], sol[test[:MKPP].q][end])
+end
+res[1, :] .= res[1, :] ./ maximum(res[1, :])
+res[2, :] .= res[2, :] ./ maximum(res[2, :])
+res[3, :] .= res[3, :] ./ maximum(res[3, :])
+plot(init_mkkkk, res', xscale = :log, labels = ["MKPP" "MKKPP" "MKKKP"], legend = :topright, xlabel = "Input (MKKKK) Concentration (μM)", ylabel = "Normalized Concentration", title = "Figure 5b")
+## Figure 5c
+model.defaults[test[:ATP].Se] = model.defaults[test[:ATP].Se] * 0.8
+p_new = ModelingToolkit.varmap_to_vars(model.defaults, parameters(model))
+init_mkkkk = 10 .^ range(-7, 1, 100)
+res = similar(init_mkkkk, (3, length(init_mkkkk)))
+u0 = Dict{Any,Float64}(states(model) .=> prob.u0)
+for index in eachindex(init_mkkkk)
+    u0[test[:MKKKK].q] = init_mkkkk[index]
+    prob = remake(prob, u0 = ModelingToolkit.varmap_to_vars(u0, states(model)), tspan = (0.0, 1000.0), p = p_new)
+    sol = solve(prob)
+    res[:, index] .= (sol[test[:MKKKP].q][end], sol[test[:MKKPP].q][end], sol[test[:MKPP].q][end])
+end
+res[1, :] .= res[1, :] ./ maximum(res[1, :])
+res[2, :] .= res[2, :] ./ maximum(res[2, :])
+res[3, :] .= res[3, :] ./ maximum(res[3, :])
+plot(init_mkkkk, res', xscale = :log, labels = ["MKPP" "MKKPP" "MKKKP"], legend = :topleft, xlabel = "Input (MKKKK) Concentration (μM)", ylabel = "Normalized Concentration", title = "Figure 5c", xticks = 10.0.^(-4:2:0))
+ 

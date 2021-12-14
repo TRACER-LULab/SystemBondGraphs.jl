@@ -14,7 +14,7 @@ function add_Se!(BG::AbstractBondGraph, name)
         :type => :Se,
         :sys => sys,
         :causality => false,
-        :state_var => [sys.e]
+        :state_var => [sys.Se]
     )
     set_props!(BG.graph, nv(BG.graph), props)
     nothing
@@ -34,7 +34,7 @@ function add_Se!(BG::AbstractBondGraph, Se, params::Vector{}, name)
         :type => :Se,
         :sys => sys,
         :causality => false,
-        :state_var => [sys.e]
+        :state_var => [sys.Se]
     )
     set_props!(BG.graph, nv(BG.graph), props)
     nothing
@@ -56,7 +56,7 @@ function add_Sf!(BG::AbstractBondGraph, name)
         :type => :Sf,
         :sys => sys,
         :causality => false,
-        :state_var => [sys.f]
+        :state_var => [sys.Sf]
     )
     set_props!(BG.graph, nv(BG.graph), props)
     nothing

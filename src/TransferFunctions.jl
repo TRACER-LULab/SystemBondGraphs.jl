@@ -3,10 +3,10 @@ Construct the transfer function for the Bond Graph with `s` as the Laplace Varia
     ``\\dot{\\vec{x}} = \\boldsymbol{A}\\vec{x}+\\boldsymbol{B}\\vec{u}``   
     ``\\vec{y} = \\boldsymbol{C}\\vec{x} + \\boldsymbol{D}\\vec{u}``   
 """
-function state_space(BG::AbstractBondGraph; ps = Dict{Any, Any}())
-    if length(states(BG.model)) == 0
-        error("Model not generated. Run generate_model!")
-    end
+function state_space(BG::AbstractBondGraph; ps = Dict{Any,Any}())
+    # if length(states(BG.model)) == 0
+    #     error("Model not generated. Run generate_model!")
+    # end
     state_vars = states(BG.model)
     eqns = equations(BG.model)
     eqns = map(eqn -> expand(substitute(eqn, ps)), eqns)
@@ -27,16 +27,15 @@ function state_space(BG::AbstractBondGraph; ps = Dict{Any, Any}())
     B = Matrix{Num}(undef, length(state_vars), length(ins))
     C = Matrix{Num}(undef, length(obs_vars), length(state_vars))
     D = Matrix{Num}(undef, length(obs_vars), length(ins))
-
     for i in eachindex(state_vars)
         for j in eachindex(state_vars)
             state_dict[state_vars[j]] = 1.0
-            A[i,j] = expand(substitute(substitute(eqns_dict[state_vars[i]].rhs, state_dict), in_dict))
+            A[i, j] = simplify(substitute(substitute(eqns_dict[state_vars[i]].rhs, state_dict), in_dict)) |> expand
             state_dict[state_vars[j]] = 0.0
         end
         for j in eachindex(ins)
             in_dict[ins[j]] = 1.0
-            B[i,j] = expand(substitute(substitute(eqns_dict[state_vars[i]].rhs, state_dict), in_dict))
+            B[i, j] = expand(simplify(substitute(substitute(eqns_dict[state_vars[i]].rhs, state_dict), in_dict)))
             in_dict[ins[j]] = 0.0
         end
     end
@@ -48,7 +47,7 @@ function state_space(BG::AbstractBondGraph; ps = Dict{Any, Any}())
         while !finished
             status = 0
             for var ∈ vars
-                try 
+                try
                     main_expr = substitute(main_expr, Dict(var => obs_dict[var]))
                 catch
                     status += 1
@@ -64,12 +63,12 @@ function state_space(BG::AbstractBondGraph; ps = Dict{Any, Any}())
         end
         for j ∈ eachindex(ins)
             in_dict[ins[j]] = 1.0
-            D[i,j] = substitute(substitute(main_expr, state_dict), in_dict) |> simplify
+            D[i, j] = substitute(substitute(main_expr, state_dict), in_dict) |> simplify
             in_dict[ins[j]] = 0.0
         end
     end
-    q = Dict(map(i-> state_vars[i] => i, eachindex(state_vars)))
-    w = Dict(map(i-> ins[i] => i, eachindex(ins)))
-    e = Dict(map(i-> obs_vars[i] => i, eachindex(obs_vars)))
-    return A, B, C, D, q, w, e
+    state_dict = Dict(map(i -> state_vars[i] => i, eachindex(state_vars)))
+    in_dict = Dict(map(i -> ins[i] => i, eachindex(ins)))
+    obs_dict = Dict(map(i -> obs_vars[i] => i, eachindex(obs_vars)))
+    return A, B, C, D, state_dict, in_dict, obs_dict
 end
