@@ -34,7 +34,7 @@ function add_Se!(BG::AbstractBondGraph, Se, params::Vector{}, name)
         :type => :Se,
         :sys => sys,
         :causality => false,
-        :state_var => [sys.Se]
+        :state_var => []
     )
     set_props!(BG.graph, nv(BG.graph), props)
     nothing
