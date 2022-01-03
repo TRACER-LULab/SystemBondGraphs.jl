@@ -7,8 +7,8 @@ function add_Se!(BG::AbstractBondGraph, name)
     node_index = nv(BG.graph)
     set_prop!(BG.graph, nv(BG.graph), :name, name)
     @variables e(BG.model.iv) f(BG.model.iv)
-    @parameters Se(BG.model.iv)
-    eqns = [0 ~ e - Se]
+    @parameters Se
+    eqns = [e ~ Se]
     sys = ODESystem(eqns, BG.model.iv, [e, f], [Se], name = name)
     props = Dict(
         :type => :Se,

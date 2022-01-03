@@ -1,8 +1,6 @@
 using BondGraphs
 using ModelingToolkit
 using DifferentialEquations
-using MetaGraphs
-using Graphs
 ##
 affinity_ATP_hydrolysis = 50000 / 8.314 / 310
 S = Symbol
