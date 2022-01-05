@@ -23,7 +23,6 @@ function state_space(BG::AbstractBondGraph, model::ODESystem; ps = Dict{Any,Any}
 
     obs_dict = Dict(obs[i].lhs => obs[i].rhs for i in eachindex(obs))
     obs_vars = collect(keys(obs_dict))
-    display(obs_vars)
     Se_vertices = filter_vertices(BG.graph, :type, :Se)
     Se_sys = map(v -> get_prop(BG.graph, v, :sys).Se, Se_vertices)
     Sf_vertices = filter_vertices(BG.graph, :type, :Sf)
