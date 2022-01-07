@@ -107,4 +107,4 @@ u0[quarter_car[:m_s].p]   = 0.0
 ## Create ODAE Problem 
 tspan = (0.0, 2.0)
 prob = ODAEProblem(quarter_car.model, u0, tspan, p)
-sol = solve(prob)
+sol = solve(prob, Rodas4())
