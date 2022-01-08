@@ -48,7 +48,7 @@ function add_R!(BG::AbstractBondGraph, Φr, ps, name; causality = false)
     add_vertex!(BG.graph)
     set_prop!(BG.graph, nv(BG.graph), :name, name)
     @variables e(BG.model.iv) f(BG.model.iv)
-    eqns = [e ~ Φr(e, f, BG.model.iv, ps)]
+    eqns = [f ~ Φr(e, f, BG.model.iv, ps)]
     sys = ODESystem(eqns, BG.model.iv, [e, f], ps, name = name)
     props = Dict(
             :type => :R,
