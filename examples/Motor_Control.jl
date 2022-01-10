@@ -1,64 +1,118 @@
 using BondGraphs
 using ModelingToolkit
 using DifferentialEquations
-##
-motor, sys = let 
-        @variables t
-        motor = BondGraph(t)
-        # Add Elements
-        add_Se!(motor, :ec)
-        add_R!(motor, :Rw)
-        add_Bond!(motor, :b3)
-        add_Bond!(motor, :b4)
-        add_C!(motor, :kτ)
-        add_Bond!(motor, :b6)
-        add_I!(motor, :J)
-        add_Se!(motor, :τd)
-        # Add Gyrator
-        add_GY!(motor, :b3, :b4, :T)
-        # Add Junctions
-        add_1J!(motor, Dict(
-                :ec => true,
-                :Rw => false,
-                :b3 => false
+using LinearAlgebra
+#-------------------------
+import Pkg
+Pkg.activate(temp = true)
+Pkg.add("ControlSystems")
+Pkg.add("Plots")
+using ControlSystems
+using Plots
+#-------------------------
+## ------- Create Bond Graphs and Model ----------
+mat, model = let
+        @variables t ω(t)
+        mat = BondGraph(t)
+        add_Se!(mat, :Va)
+        add_I!(mat, :L)
+        add_R!(mat, :R)
+        add_Bond!(mat, :b4)
+        add_Bond!(mat, :b5)
+        add_GY!(mat, :b4, :b5, :km)
+        add_I!(mat, :J)
+        add_Se!(mat, :τ)
+        add_R!(mat, :kf)
+        add_1J!(mat, Dict(
+                        :Va => true,
+                        :L => false,
+                        :R => false,
+                        :b4 => false
                 ), :J11)
-        add_0J!(motor, Dict(
-                :b4 => true,
-                :kτ => false,
-                :b6 => false
-                ), :J01)
-        add_1J!(motor, Dict(
-                :b6 => true,
-                :J => false,
-                :τd => true
+        add_1J!(mat, Dict(
+                        :b5 => true,
+                        :J => false,
+                        :kf => false,
+                        :τ => true
                 ), :J12)
-        # Generate Modelalg
-        sys = generate_model(motor)
-        sys = structural_simplify(sys)
-        motor, sys
-end;
-A, B, C, D, x⃗, u⃗, y⃗ = state_space(motor, sys);
-## System Parameters
-p = Dict{Num, Float64}()
-@parameters m, ωₙ, R
-p[motor[:Rw].R] = 1
-p[motor[:T].r]  = 0.5
-p[m]            = 5/2.2
-p[R]            = 4.0*0.0254
-p[motor[:J].I]  = p[m]*p[R]^2/2.0
-p[ωₙ]           = 2π
-p[motor[:kτ].C] = 1/(p[motor[:J].I]*p[ωₙ]^2)
-## Update State Space Matrices A, B, C, D
-A = Symbolics.value.(substitute.(A, (p,)))
-B = Symbolics.value.(substitute.(B, (p,)))
-C = Symbolics.value.(substitute.(C, (p,)))
-D = Symbolics.value.(substitute.(D, (p,)))
-## Convert to Control System
-# x⃗̇ = Ax⃗ + Bu⃗
-# y⃗ = Cx⃗ + Du⃗
-# Output Variable = q
-#
-C = zeros(size(A, 2))
-D = zeros(size(B, 2))
-C[x⃗[motor[:kτ].q]] = 1.0
-ss(A, B, C, D)
+        model = generate_model(mat)
+        mat, model
+end
+## Create State-Space Representation for Angular Velocity and Transfer Fucntions
+motor_ss, motor_tf = let
+        A, B, C, D, x⃗, u⃗, y⃗ = state_space(mat, model)
+        p = Dict(
+                mat[:R].R => 2.0,
+                mat[:L].I => 0.5,
+                mat[:km].r => 0.1,
+                mat[:kf].R => 0.2,
+                mat[:J].I => 0.02
+        )
+        A = Symbolics.value.(substitute.(A, (p,)))
+        B = Symbolics.value.(substitute.(B, (p,)))
+        C = [0 1 / p[mat[:J].I]]
+        D = [0 0]
+        motor_ss = minreal(ss(A, B, C, D))
+        motor_tf = tf(motor_ss)
+        motor_tf = minreal(motor_tf)
+        motor_ss, motor_tf
+end
+## ------ Feedforward Controller -------
+y_ff = let
+        kff_gain = 1 / motor_tf[1, 1](0)[1]
+        kff = ss(tf([kff_gain], [1.0]))
+        cl_ff = motor_tf * diagm([kff_gain, 1.0])
+        input(x, t) = [1.0, -0.1 * (5.0 <= t <= 10.0)]
+        dt = 0.09
+        t = 0.0:dt:dt*150
+        y_ff, t, x, u = lsim(cl_ff, input, t, dt = dt)
+        y_ff
+end
+## ------ Feedback Controller -------
+y_fb = let
+        kfb_gain = 5.0
+        C = append(ss(tf([kfb_gain], [1, 0])), tf([1]))
+        OL = motor_ss * C
+        fb = ss(zeros(2, 2), zeros(2, 1), zeros(2, 2), [1, 0])
+        cl_fb = minreal(feedback(OL, fb))
+        input(x, t) = [1.0, -0.1 * (5.0 <= t <= 10.0)]
+        dt = 0.09
+        t = 0.0:dt:dt*150
+        y_fb, t, x, u = lsim(cl_fb, input, t, dt = dt)
+        y_fb
+end
+##
+y_lqr = let
+        motor_aug = [1; ss(tf([1], [1, 0]))] * motor_ss[1, 1]
+        R = float.(I(1)) * 100.0
+        Q11 = 20.0  # ^ -> [+x 0 +x]
+        Q12 = 21.5  # ^ -> [0 0 -x]
+        Q13 = 1.0  # nothing
+        Q22 = 16.0 # ^ -> [0 +x +x]
+        Q23 = 4.0  # ^ -> [0 0 +x] 
+        Q33 = 10.0 # nothing
+        Q = [Q11 Q12 Q13;
+             Q12 Q22 Q23; 
+             Q13 Q23 Q33]
+        K_lqr = lqr(motor_aug, Q, R)
+        K_lqr = [44.7214 36.9701 15.1780]
+        P = ss(motor_ss.A, motor_ss.B, vcat(motor_ss.C, [0 1], [1 0]), vcat(motor_ss.D, [0 0], [0 0]))
+        C = ss(K_lqr * append(tf([1], [1, 0]), tf([1]), tf([1])))
+        OL = P * append(C, tf([1]))
+        CL = feedback(OL, ss(I(3)), U1 = 1:3, U2 = 1:3)
+        cl_lqr = CL[1, 1:3:4]
+        input(x, t) = [1.0, -0.1 * (5.0 <= t <= 10.0)]
+        dt = 0.09
+        t = 0.0:dt:dt*150
+        y_lqr, t, x, u = lsim(cl_lqr, input, t, dt = dt)
+        y_lqr
+end
+## --------- Plot the Results --------------------------
+let
+        dt = 0.09
+        t = 0.0:dt:dt*150
+        plot(t, [y_ff', y_fb', y_lqr'], label = ["Feedforward" "Feedback" "LQR"])
+        plot!(t, ones(length(t)), label = "ω-setpoint")
+        plot!(t, t -> -0.1 * (5 <= t <= 10), label = "Disturbance Torque")
+        plot!(legend = :topleft, xlabel = "Time", ylabel = "Amplitude")
+end
