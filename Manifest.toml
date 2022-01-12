@@ -1,6 +1,10 @@
 # This file is machine-generated - editing it directly is not advised
 
+<<<<<<< HEAD
 julia_version = "1.7.1"
+=======
+julia_version = "1.7.0"
+>>>>>>> 568fb7e49f58a2175bfa418a6d606bf7ac298faf
 manifest_format = "2.0"
 
 [[deps.ANSIColoredPrinters]]
@@ -227,9 +231,15 @@ version = "0.4.0"
 
 [[deps.DiffEqBase]]
 deps = ["ArrayInterface", "ChainRulesCore", "DEDataArrays", "DataStructures", "Distributions", "DocStringExtensions", "FastBroadcast", "ForwardDiff", "FunctionWrappers", "IterativeSolvers", "LabelledArrays", "LinearAlgebra", "Logging", "MuladdMacro", "NonlinearSolve", "Parameters", "PreallocationTools", "Printf", "RecursiveArrayTools", "RecursiveFactorization", "Reexport", "Requires", "SciMLBase", "Setfield", "SparseArrays", "StaticArrays", "Statistics", "SuiteSparse", "ZygoteRules"]
+<<<<<<< HEAD
 git-tree-sha1 = "15e43e11701b8c0b6250d7996b5768751f5a10c2"
 uuid = "2b5f629d-d688-5b77-993f-72d75c75574e"
 version = "6.81.0"
+=======
+git-tree-sha1 = "ee01c1aff6c9c1424b904c37082f56ebfc5e0abb"
+uuid = "2b5f629d-d688-5b77-993f-72d75c75574e"
+version = "6.80.0"
+>>>>>>> 568fb7e49f58a2175bfa418a6d606bf7ac298faf
 
 [[deps.DiffEqCallbacks]]
 deps = ["DataStructures", "DiffEqBase", "ForwardDiff", "LinearAlgebra", "NLsolve", "OrdinaryDiffEq", "Parameters", "RecipesBase", "RecursiveArrayTools", "SciMLBase", "StaticArrays"]
@@ -353,9 +363,15 @@ version = "0.12.7"
 
 [[deps.FiniteDiff]]
 deps = ["ArrayInterface", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays"]
+<<<<<<< HEAD
 git-tree-sha1 = "6eae72e9943d8992d14359c32aed5f892bda1569"
 uuid = "6a86dc24-6348-571c-b903-95158fe2bd41"
 version = "2.10.0"
+=======
+git-tree-sha1 = "b374f22e8565a01d6e5db1e8640c3c5e3fe7d564"
+uuid = "6a86dc24-6348-571c-b903-95158fe2bd41"
+version = "2.9.0"
+>>>>>>> 568fb7e49f58a2175bfa418a6d606bf7ac298faf
 
 [[deps.Formatting]]
 deps = ["Printf"]
@@ -557,9 +573,15 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[deps.LinearSolve]]
 deps = ["ArrayInterface", "DocStringExtensions", "IterativeSolvers", "KLU", "Krylov", "KrylovKit", "LinearAlgebra", "RecursiveFactorization", "Reexport", "Requires", "SciMLBase", "Setfield", "SparseArrays", "SuiteSparse", "UnPack"]
+<<<<<<< HEAD
 git-tree-sha1 = "c1732d865963f98f2503ceda332c1b53a95089f8"
 uuid = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
 version = "1.4.0"
+=======
+git-tree-sha1 = "5ce9a8e27fcc33881fa8f8c204e92f4f29f78326"
+uuid = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
+version = "1.3.0"
+>>>>>>> 568fb7e49f58a2175bfa418a6d606bf7ac298faf
 
 [[deps.LogExpFunctions]]
 deps = ["ChainRulesCore", "ChangesOfVariables", "DocStringExtensions", "InverseFunctions", "IrrationalConstants", "LinearAlgebra"]
@@ -707,9 +729,15 @@ version = "1.4.1"
 
 [[deps.OrdinaryDiffEq]]
 deps = ["Adapt", "ArrayInterface", "DataStructures", "DiffEqBase", "DocStringExtensions", "ExponentialUtilities", "FastClosures", "FiniteDiff", "ForwardDiff", "LinearAlgebra", "LinearSolve", "Logging", "LoopVectorization", "MacroTools", "MuladdMacro", "NLsolve", "Polyester", "PreallocationTools", "RecursiveArrayTools", "Reexport", "SparseArrays", "SparseDiffTools", "StaticArrays", "UnPack"]
+<<<<<<< HEAD
 git-tree-sha1 = "f10323023a0fc017c07de2a6d1b4604cace7f345"
 uuid = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 version = "6.4.1"
+=======
+git-tree-sha1 = "8ccc645a7afe7000aba981b3cf33efcc40a866b1"
+uuid = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+version = "6.4.0"
+>>>>>>> 568fb7e49f58a2175bfa418a6d606bf7ac298faf
 
 [[deps.PDMats]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -885,9 +913,15 @@ version = "0.0.1"
 
 [[deps.SciMLBase]]
 deps = ["ArrayInterface", "CommonSolve", "ConstructionBase", "Distributed", "DocStringExtensions", "IteratorInterfaceExtensions", "LinearAlgebra", "Logging", "RecipesBase", "RecursiveArrayTools", "StaticArrays", "Statistics", "Tables", "TreeViews"]
+<<<<<<< HEAD
 git-tree-sha1 = "40c1c606543c0130cd3673f0dd9e11f2b5d76cd0"
 uuid = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 version = "1.26.0"
+=======
+git-tree-sha1 = "68c2ee0351edd3c39f67a017d2d1d12f939126dc"
+uuid = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
+version = "1.25.0"
+>>>>>>> 568fb7e49f58a2175bfa418a6d606bf7ac298faf
 
 [[deps.Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
@@ -923,9 +957,15 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[deps.SparseDiffTools]]
 deps = ["Adapt", "ArrayInterface", "Compat", "DataStructures", "FiniteDiff", "ForwardDiff", "Graphs", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays", "VertexSafeGraphs"]
+<<<<<<< HEAD
 git-tree-sha1 = "75c89362201983c500dd34923b015dbecdae7a90"
 uuid = "47a9eef4-7e08-11e9-0b38-333d64bd3804"
 version = "1.20.0"
+=======
+git-tree-sha1 = "68f83df57443ddf664e3f0b8a7d49056995b19f6"
+uuid = "47a9eef4-7e08-11e9-0b38-333d64bd3804"
+version = "1.19.5"
+>>>>>>> 568fb7e49f58a2175bfa418a6d606bf7ac298faf
 
 [[deps.SpecialFunctions]]
 deps = ["ChainRulesCore", "IrrationalConstants", "LogExpFunctions", "OpenLibm_jll", "OpenSpecFun_jll"]
@@ -947,9 +987,15 @@ version = "0.4.1"
 
 [[deps.StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
+<<<<<<< HEAD
 git-tree-sha1 = "2ae4fe21e97cd13efd857462c1869b73c9f61be3"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
 version = "1.3.2"
+=======
+git-tree-sha1 = "88a559da57529581472320892576a486fa2377b9"
+uuid = "90137ffa-7385-5640-81b9-e52037218182"
+version = "1.3.1"
+>>>>>>> 568fb7e49f58a2175bfa418a6d606bf7ac298faf
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
@@ -1018,9 +1064,15 @@ version = "0.19.0"
 
 [[deps.Symbolics]]
 deps = ["ArrayInterface", "ConstructionBase", "DataStructures", "DiffRules", "Distributions", "DocStringExtensions", "DomainSets", "IfElse", "Latexify", "Libdl", "LinearAlgebra", "MacroTools", "Metatheory", "NaNMath", "RecipesBase", "Reexport", "Requires", "RuntimeGeneratedFunctions", "SciMLBase", "Setfield", "SparseArrays", "SpecialFunctions", "StaticArrays", "SymbolicUtils", "TermInterface", "TreeViews"]
+<<<<<<< HEAD
 git-tree-sha1 = "074e08aea1c745664da5c4b266f50b840e528b1c"
 uuid = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 version = "4.3.0"
+=======
+git-tree-sha1 = "3f354e1fac72482a0ba2ad3d7f9a08e8acc367a5"
+uuid = "0c5d862f-8b57-4792-8d23-62f2024744c7"
+version = "4.2.3"
+>>>>>>> 568fb7e49f58a2175bfa418a6d606bf7ac298faf
 
 [[deps.TOML]]
 deps = ["Dates"]
