@@ -82,7 +82,8 @@ function BondGraph(mg::AbstractMetaGraph, independent_variable::Num)
     return BondGraph(mg, sys)
 end
 
-include("OnePorts.jl")
+include("LinearOnePorts.jl")
+include("NonlinearOnePorts.jl")
 include("Sources.jl")
 include("Junctions.jl")
 include("TwoPorts.jl")
