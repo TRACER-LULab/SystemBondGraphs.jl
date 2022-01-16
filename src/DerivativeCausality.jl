@@ -87,7 +87,7 @@ function remove_casuality(BG::AbstractBondGraph; skip::Vector{Num} = Num[])
     model = BondGraphs.graph_to_model(BG)
     # model = extend(BG.model, model)
     # Get Equations
-    eqns = equations(model)
+    eqns = full_equations(model)
     # Get parameters
     params = parameters(model)
     # Create Differential Operator

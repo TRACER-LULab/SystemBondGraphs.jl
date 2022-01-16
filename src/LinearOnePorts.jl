@@ -6,8 +6,6 @@ Create an Bond in a BondGraph to connect Junction->Junction, OnePort->TwoPort. I
 function add_Bond!(BG::AbstractBondGraph, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     sys = ODESystem(Equation[], BG.model.iv, [e, f], [], name = name)
-    # sys = ODESystem(Equation[],  BG.model.iv, name = name)
-    # BG.elements[name] = Element(:B, sys, [], false)   
     add_vertex!(BG.graph)
     props = Dict(
         :type => :B,
@@ -31,7 +29,6 @@ function add_R!(BG::AbstractBondGraph, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv)
     @parameters R
     eqns = [e ~ R * f]
-    # sys  = ODESystem(eqns, BG.model.iv, [e, f], [R], name = name)
     sys = ODESystem(eqns, BG.model.iv,name = name)
     props = Dict(
         :type => :R,
@@ -55,7 +52,6 @@ function add_C!(BG::AbstractBondGraph, name; causality = false)
         D(q) ~ f,
         e ~ q / C
     ]
-    # sys = ODESystem(eqns, BG.model.iv, [e, f, q], [C], name = name)
     sys = ODESystem(eqns, BG.model.iv,name = name)
     add_vertex!(BG.graph)
     props = Dict(
@@ -81,7 +77,6 @@ function add_I!(BG::AbstractBondGraph, name; causality = false)
         D(p) ~ e,
         f ~ p / I
     ]
-    # sys = ODESystem(eqns, BG.model.iv, [e, f, p], [I], name = name)
     sys = ODESystem(eqns,BG.model.iv, name = name)
     add_vertex!(BG.graph)
     props = Dict(
@@ -109,8 +104,6 @@ function add_M!(BG::AbstractBondGraph, name; causality = false)
         D(q) ~ f,
         p ~ M * q
     ]
-    # sys = ODESystem(eqns, BG.model.iv, [e, f, p, q], [M], name = name)
-
     sys = ODESystem(eqns, BG.model.iv, name = name)
     add_vertex!(BG.graph)
     props = Dict(

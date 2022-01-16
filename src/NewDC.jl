@@ -58,7 +58,7 @@ function resolve_equations(constituitive_equation::Equation, derivative_form::Eq
 end
 function derivative_casuality(BG; skip = [])
     model = BondGraphs.graph_to_model(BG)
-    eqs = equations(model)
+    eqs = full_equations(model)
     ps = [parameters(model); skip]
     fn(g, v) = (get_prop(g, v, :type) == :C || get_prop(g, v, :type) == :I) && !get_prop(g, v, :causality)
     svs = map(v -> get_prop(BG.graph, v, :state_var), filter_vertices(BG.graph, fn))

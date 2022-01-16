@@ -4,17 +4,17 @@ Construct the transfer function for the Bond Graph with `s` as the Laplace Varia
     ``\\vec{y} = \\boldsymbol{C}\\vec{x} + \\boldsymbol{D}\\vec{u}``   
 """
 function state_space(BG::AbstractBondGraph, model::ODESystem; ps = Dict{Any,Any}())
-    if length(filter(eq -> eq.lhs isa Int64, equations(model))) > 0
+    if length(filter(eq -> eq.lhs isa Int64, full_equations(model))) > 0
         de_model, alg_eqns = remove_algebraic(BG, model)
         state_vars = states(de_model)
-        eqns = equations(de_model)
+        eqns = full_equations(de_model)
         eqns = map(eqn -> expand(substitute(eqn, ps)), eqns)
         eqns_dict = Dict(get_variables(getfield(eqn, :lhs))[1] => eqn for eqn in eqns)
         obs = [observed(model); alg_eqns]
         obs = map(eqn -> expand(substitute(eqn, ps)), obs)
     else
         state_vars = states(model)
-        eqns = equations(model)
+        eqns = full_equations(model)
         eqns = map(eqn -> expand(substitute(eqn, ps)), eqns)
         eqns_dict = Dict(get_variables(getfield(eqn, :lhs))[1] => eqn for eqn in eqns)
         obs = observed(model)

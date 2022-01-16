@@ -14,12 +14,6 @@ function add_1J!(BG::AbstractBondGraph, elements::Dict{Symbol,Bool}, name::Symbo
             add_edge!(BG.graph, BG.graph[name, :name], BG.graph[j, :name])
         end
     end
-    # eqns = [
-    #         0 ~ sum(x -> BG[x].e * (-1).^(!elements[x]), keys(elements)) # Sum of all efforts is 0
-    #         ]
-    # for i ∈ 1:length(elems) - 1
-    #     push!(eqns, BG[elems[i]].f ~ BG[elems[i + 1]].f) # flow equality
-    # end
     sys = ODESystem(Equation[], BG.model.iv, [], [], name = name)
     props = Dict(
                 :type => :J1,
@@ -45,12 +39,6 @@ function add_0J!(BG::AbstractBondGraph, elements::Dict{Symbol,Bool}, name::Symbo
             add_edge!(BG.graph, BG.graph[name, :name], BG.graph[j, :name])
         end
     end
-    # eqns = [
-    #         0 ~ sum(x -> BG[x].f * (-1).^(!elements[x]), keys(elements)) # Sum of all flows is 0
-    #         ]
-    # for i ∈ 1:length(elems) - 1
-    #     push!(eqns, BG[elems[i]].e ~ BG[elems[i + 1]].e) # effort equality
-    # end
     sys = ODESystem(Equation[], BG.model.iv, [], [], name = name)
     props = Dict(
                 :type => :J0,
