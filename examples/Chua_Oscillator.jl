@@ -46,27 +46,11 @@ add_0J!(chua, Dict(
   ), :J02)
 sys = generate_model(chua)
 sys = structural_simplify(sys, simplify = true)
+new_sys, obs = BondGraphs.remove_algebraic(chua, sys)
+sys = extend(ODESystem([observed(sys); obs], sys.iv, name = :temp), new_sys) |> structural_simplify
 # equations(sys)
 # ## # Set Parameters
-# p = [
-#   chua[:R].R => 1 / 0.7,
-#   chua[:C1].C => 1 / 10.0,
-#   chua[:C2].C => 1 / 0.5,
-#   chua[:L].I => 1 / 7.0,
-#   chua[:R_nonlinear].E => 1.0,
-#   chua[:R_nonlinear].Ga => 1/4.0,
-#   chua[:R_nonlinear].Gb => 1/0.1
-# ] |> Dict
-# u0 = [
-#   chua[:C1].q => -1.35164 * p[chua[:C1].C],
-#   chua[:C2].q => 9.13959 * p[chua[:C2].C],
-#   chua[:L].p => 9.2869 * p[chua[:L].I],
-# ] |> Dict
-# tspan = (0.0, 10.0)
-# prob = ODAEProblem(sys, u0, tspan, p)
-# sol = solve(prob, Rosenbrock23())
-# ##
-# plot(sol[chua[:C1].e], sol[chua[:C2].e])
+# 
 # ##
 # # ---- traditional implementation of chua's circuit ----
 # @variables t v1(t) v2(t) i3(t)

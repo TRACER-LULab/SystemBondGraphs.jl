@@ -1,7 +1,7 @@
 name = "BondGraphs"
 uuid = "81b6dc42-80d7-44f0-b878-76c33e6b41d1"
 authors = ["Carson Farmer <59753859+cfarm6@users.noreply.github.com>"]
-version = "0.1.0"
+version = "0.1.5"
 
 [deps]
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"

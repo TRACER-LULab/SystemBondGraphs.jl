@@ -2,14 +2,14 @@
 """
 Add a linear transformer with modulus `m`, in element name `in`, out element name `out`, and named `name`.
 """
-function add_TF!(BG::AbstractBondGraph, m, in, out, name)
+function add_TF!(BG::AbstractBondGraph, in, out, name)
     # @parameters m
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
     set_prop!(BG.graph, node_index, :name, name)
     add_edge!(BG.graph, BG.graph[name, :name], BG.graph[in, :name])
     add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])
-
+    @parameters m
     eqns = [
         0 ~ ParentScope(BG[in].e) - m * ParentScope(BG[out].e), 
         0 ~ m * ParentScope(BG[in].f) - ParentScope(BG[out].f)
@@ -30,7 +30,7 @@ end
 """
 Add a linear gyrator with modulus `r`, in element name `in`, out element name `out`, and named `name`.
 """
-function add_GY!(BG::AbstractBondGraph,in, out, name)
+function add_GY!(BG::AbstractBondGraph, in, out, name)
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
     set_prop!(BG.graph, node_index, :name, name)

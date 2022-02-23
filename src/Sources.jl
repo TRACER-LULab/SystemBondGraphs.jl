@@ -3,12 +3,11 @@
 Create a Symbolic/Constant Effort Input. Creates a system with parameters `Se` for the ODESystem.
 """
 function add_Se!(BG::AbstractBondGraph, name)
+    @variables e(BG.model.iv) f(BG.model.iv) 
+    @parameters Se(BG.model.iv) [input = true]
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
     set_prop!(BG.graph, nv(BG.graph), :name, name)
-    @variables e(BG.model.iv) f(BG.model.iv)
-    
-    @parameters Se(BG.model.iv)
     eqns = [e ~ Se]
     sys = ODESystem(eqns, BG.model.iv, [e, f], [Se], name = name)
     props = Dict(
@@ -47,7 +46,7 @@ Create a Symbolic/Constant Flow Input. Creates a system with parameters `Sf` for
 """
 function add_Sf!(BG::AbstractBondGraph, name)
     @variables e(BG.model.iv) f(BG.model.iv)
-    @parameters Sf(BG.model.iv)
+    @parameters Sf(BG.model.iv) [input = true]
     eqns = [0 ~ f - Sf]
     sys = ODESystem(eqns, BG.model.iv, [e, f], [Sf], name = name)
     add_vertex!(BG.graph)

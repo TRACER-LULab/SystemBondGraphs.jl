@@ -10,8 +10,9 @@ add_R!(msd, :R_1)
 add_C!(msd, :C_1)
 add_I!(msd, :I_1)
 @parameters α ω
-vin(e, f, t, p) = p[1]*sin(t*p[2])
-add_Se!(msd, vin, [α,ω], :Se)
+# vin(e, f, t, p) = p[1]*sin(t*p[2])
+# add_Se!(msd, vin, [α,ω], :Se)
+add_Se!(msd, :Se)
 ## Add Junction Connection Elements 
 add_1J!(msd,
     Dict(
@@ -22,9 +23,9 @@ add_1J!(msd,
     ),
     :J1);
 ## Traverse Graph and Generate Model
-model = generate_model(msd)
+sys = generate_model(msd)
 ## Utilizing Modeling Toolkit to simplify Model
-model = structural_simplify(model)
+model = structural_simplify(sys, simplify = true)
 ## Normal ModelingToolkit.jl/DifferentialEquations.jl Solving
 u0 = [
     msd[:C_1].q => 0.0,
