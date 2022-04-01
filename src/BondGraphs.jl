@@ -17,6 +17,7 @@ export BondGraph, BioBondGraph,
     add_TF!, add_GY!,
     add_MTF!, add_MGY!,
     add_1J!, add_0J!,
+    add_IP!,
     generate_model!, generate_model,
     state_space,
     get_graph, savebondgraph, loadbondgraph,
@@ -93,4 +94,5 @@ include("ModelGeneration.jl")
 include("IO.jl")
 include("DerivativeCausality.jl")
 include("NewDC.jl")
+include("InformationProcessor.jl")
 end # module
