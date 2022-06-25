@@ -1,6 +1,6 @@
 
 """
-Create a nonlinear R-Element with \$\\Phi_r\$ registered with modelingtoolkit.jl to prevent simplification through the nonlinear function. \$e = \\Phi_r(e, f, t, ps)\$. Params are for any parameters to the nonlinear function. 
+Create a nonlinear R-Element with \$\\Phi_r\$ registered with modelingtoolkit.jl to prevent simplification through the nonlinear function. \$e = \\Phi_r(e, f, t, ps)\$. Params are for any parameters to the nonlinear function.
 """
 function add_R!(BG::AbstractBondGraph, Φr, ps, name; causality = false)
     add_vertex!(BG.graph)
@@ -19,12 +19,11 @@ function add_R!(BG::AbstractBondGraph, Φr, ps, name; causality = false)
         :state_var => []
     )
     set_props!(BG.graph, nv(BG.graph), props)
-    display("NONLINEAR")
     nothing
 end
 
 """
-Create a Nonlinear C-Element with \$e = \\phi_c(e, f, q, t, ps)\$. Setting Causality to true represents the elements being in derivative causality. 
+Create a Nonlinear C-Element with \$e = \\phi_c(e, f, q, t, ps)\$. Setting Causality to true represents the elements being in derivative causality.
 """
 function add_C!(BG::AbstractBondGraph, Φc, ps, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) q(BG.model.iv)
@@ -54,7 +53,7 @@ function add_C!(BG::AbstractBondGraph, Φc, ps, name; causality = false)
 end
 
 """
-Create a Nonlinear I-Element with \$f = \\phi_I(e, f, p, t, ps)\$. Setting Causality to true represents the elements being in derivative causality. 
+Create a Nonlinear I-Element with \$f = \\phi_I(e, f, p, t, ps)\$. Setting Causality to true represents the elements being in derivative causality.
 """
 function add_I!(BG::AbstractBondGraph, Φi, ps, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv)
@@ -84,7 +83,7 @@ function add_I!(BG::AbstractBondGraph, Φi, ps, name; causality = false)
 end
 
 """
-Create a Nonlinear M-Element with \$p = \\phi_M(e, f, p, q, t, ps)\$. Setting Causality to true represents the elements being in derivative causality. 
+Create a Nonlinear M-Element with \$p = \\phi_M(e, f, p, q, t, ps)\$. Setting Causality to true represents the elements being in derivative causality.
 """
 function add_M!(BG::AbstractBondGraph, Φm, ps, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv) q(BG.model.iv)

@@ -1,74 +1,66 @@
-##
 using BondGraphs
 using ModelingToolkit
 using DifferentialEquations
 using IfElse
-
-## Create independent variable
+# # Create Bond graph
 @parameters t
-
-## Create Empty Bond Graph
-quarter_car = BondGraph(t)
-
-## Create nonlinear Element Functions
-# Parameters
+quarter_car = BondGraph(t, :qc)
+# # Create nonlinear Element Functions
+# ## Parameters
 @parameters h, d, U, ks1, ks2, qs0, kt, B
-# Tire Spring
+# ## Tire Spring
 Fₜ(e, f, q, t, p) = IfElse.ifelse(q >= 0.0, kt * q, 0)
-# Connecting Spring
+# ## Connecting Spring
 Fₛ(e, f, q, t, p) = IfElse.ifelse(q <= qs0, ks1 * q, ks1 * qs0 + ks2 * (q - qs0))
-# Cubic Damper
+# ## Cubic Damper
 Fd(e, f, t, p) = B * f^3
-# Velocity Input
-vᵢ(e, f, t, p) = IfElse.ifelse(U / d * t > 0.0, 
+# ## Velocity Input
+vᵢ(e, f, t, p) = IfElse.ifelse(U / d * t > 0.0,
                                 IfElse.ifelse(
-                                    (U / d * t) <= 1, 
-                                    h / d * π * U * cos(π * U / d * t), 
+                                    (U / d * t) <= 1,
+                                    h / d * π * U * cos(π * U / d * t),
                                     0.0),
                                 0.0
                                 )
 
-## Create Nonlinear Elements
+# ## Create Nonlinear Elements
 add_Sf!(quarter_car, vᵢ, [U, d, h], :v_i)
-add_C!(quarter_car, Fₜ, [kt], :C_2)
-add_C!(quarter_car, Fₛ, [ks1, qs0, ks2], :C_9)
-add_R!(quarter_car, Fd, [B], :R_8)
-
-## Create Linear Elements
+add_C!(quarter_car, :e => Fₜ, [kt], :C_2)
+add_C!(quarter_car, :e => Fₛ, [ks1, qs0, ks2], :C_9)
+add_R!(quarter_car, :e => Fd, [B], :R_8)
+# ## Create Linear Elements
 add_Se!(quarter_car, :mg_us)
 add_I!(quarter_car, :m_us)
 add_Se!(quarter_car, :mg_s)
 add_I!(quarter_car, :m_s)
-
-## Create Arbitrary Connecting Bonds
+# ## Create Arbitrary Connecting Bonds
 add_Bond!(quarter_car, :b3)
 add_Bond!(quarter_car, :b6)
 add_Bond!(quarter_car, :b7)
 add_Bond!(quarter_car, :b10)
-
-## Create Junctions
+# ## Create Junctions
 add_0J!(quarter_car, Dict(
     :v_i => true,
     :C_2 => false,
     :b3 => false
-    ), 
+    ),
     :J01)
 add_1J!(quarter_car, Dict(
-    :b3 => true, 
-    :mg_us => false, 
-    :m_us => false, 
+    :b3 => true,
+    :mg_us => false,
+    :m_us => false,
     :b6 => false
     ),
     :J11)
 add_0J!(quarter_car, Dict(
-    :b6 => true, 
+    :b6 => true,
     :b7 => false,
     :b10 => false),
     :J02)
 add_1J!(quarter_car, Dict(
-    :b7 => true, 
+    :b7 => true,
     :C_9 => false,
-    :R_8 => false), 
+    :R_8 => false),
     :J12)
 add_1J!(quarter_car, Dict(
     :b10 => true,
@@ -76,13 +68,13 @@ add_1J!(quarter_car, Dict(
     :m_s => false),
     :J13)
 
-## Generate Model
+# ## Generate Model
 generate_model!(quarter_car)
 
-## Simplify Model
+# ## Simplify Model
 quarter_car.model = structural_simplify(quarter_car.model)
 
-## Add Model Parameters and Initial Conditions Table 5.1
+# ## Add Model Parameters and Initial Conditions Table 5.1
 p = Dict{Num, Float64}()
 u0 = Dict{Num, Float64}()
 fₛ = 1.0
@@ -104,7 +96,8 @@ p[quarter_car[:mg_s].Se]  = 9.81 * p[quarter_car[:m_s].I]
 u0[quarter_car[:m_us].p]  = 0.0
 u0[quarter_car[:m_s].p]   = 0.0
 
-## Create ODAE Problem 
+# ## Create ODAE Problem
 tspan = (0.0, 2.0)
 prob = ODAEProblem(quarter_car.model, u0, tspan, p)
 sol = solve(prob, Rodas4())
+plot(sol)
