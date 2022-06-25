@@ -4,7 +4,7 @@ using DifferentialEquations
 ##
 dc = let
     @variables t
-    dc = BondGraph(t)
+    dc = BondGraph(t, :dc)
     # Add Elements
     add_Se!(dc, :ec)
     add_R!(dc, :Rw)
@@ -37,9 +37,9 @@ dc = let
     dc
 end
 ##
-sys = derivative_casuality(dc)
+sys = generate_model(dc)
 sys = structural_simplify(sys)
-## 
+##
 u0 = [
     dc[:L].p => 0.0,
     dc[:J].p => 0.0,
@@ -55,4 +55,5 @@ p = [
 ]
 tspan = (0.0, 1.0)
 prob = ODAEProblem(sys, u0, tspan, p)
-sol = solve(prob, restol = 1e-8)
+sol = solve(prob, Tsit5())
+plot(sol)

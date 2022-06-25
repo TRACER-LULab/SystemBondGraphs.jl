@@ -125,7 +125,6 @@ function graph_to_model(BG::AbstractBondGraph)
     IP_verts = filter_vertices(BG.graph, (g, v) -> get_prop(g, v, :type) ∈ [:IP])
     eqns = equations(model)
     substitutions = vcat(map(v->get_prop(BG.graph, v, :subs), IP_verts)...)
-    display(substitutions)
     eqns = substitute.(eqns, (Dict(substitutions), ))
     model = ODESystem(eqns, model.iv, name = model.name)
 end

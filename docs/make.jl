@@ -1,29 +1,16 @@
-import Pkg; Pkg.activate("."); Pkg.instantiate()
-using Documenter
-using BondGraphs
-# Pkg.add("ModelingToolkit")
-using ModelingToolkit
-# Pkg.add("MetaGraphs")
-using MetaGraphs
 
-makedocs(
-    sitename="BondGraphs.jl",
-    modules = [BondGraphs],
-    pages = [
-        "Introduction" => "index.md",
-        "Examples" => "examples.md",
-        "Bond Graphs" => "BondGraphs.md",
-        "One Ports" => "OnePorts.md",
-        "Sources" => "Sources.md",
-        "Two Ports" => "TwoPorts.md",
-        "Junctions" => "Junctions.md",
-        "Multi-Ports" => "MultiPorts.md",
-        "Transfer Functions" => "TransferFunctions.md",
-        "I/O" => "Import_Export.md",
-        ]
-    )
-       
-deploydocs(
-    repo = "github.com/TRACER-LULab/BondGraphs.jl.git",
-    devbranch = "main"
-) 
+using Pkg
+
+Pkg.develop(path = "..")
+
+using Publish
+using Hyperelastics
+using Artifacts, LazyArtifacts
+
+# override default theme
+cp(artifact"Tracer-Theme", "../_Tracer-Theme"; force=true)
+
+function build_and_deploy(label)
+    rm(label; recursive = true, force = true)
+    deploy(Hyperelastics; root = "/Hyperelastics.jl", label = label)
+end

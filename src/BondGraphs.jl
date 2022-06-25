@@ -9,20 +9,19 @@ using Graphs
 using MetaGraphs
 using FileIO
 using Documenter
-## TODO: Develop better model parameter handling avoid structs of structs....
-## TODO: Better interface with LightGraphs and Flux
-export BondGraph, BioBondGraph,
-    add_Bond!, add_R!, add_C!, add_I!, add_M!,
-    add_Se!, add_Sf!,
-    add_TF!, add_GY!,
-    add_MTF!, add_MGY!,
-    add_1J!, add_0J!,
-    add_IP!,
-    generate_model!, generate_model,
-    state_space,
-    get_graph, savebondgraph, loadbondgraph,
-    remove_algebraic, remove_casuality,
-    derivative_casuality
+
+export BondGraph, BioBondGraph
+export add_Bond!, add_R!, add_C!, add_I!, add_M!
+export add_Se!, add_Sf!
+export add_TF!, add_GY!
+export add_MTF!, add_MGY!
+export add_1J!, add_0J!
+export add_IP!
+export generate_model!, generate_model
+export state_space
+export get_graph, savebondgraph, loadbondgraph
+export remove_algebraic, remove_casuality
+export derivative_casuality
 
 ## Function to create a generic Model
 abstract type AbstractBondGraph end
@@ -58,17 +57,17 @@ Base.getindex(BG::AbstractBondGraph, node::Int) = get_prop(BG.graph, node, :sys)
 Create an empty BondGraph to be populated during the analysis
 
 """
-function BondGraph(independent_variable::Num)
+function BondGraph(independent_variable::Num, name)
     mg = MetaDiGraph()
     set_indexing_prop!(mg, :name)
-    sys = ODESystem(Equation[], independent_variable, name = :model)
+    sys = ODESystem(Equation[], independent_variable, name=Symbol(name))
     return BondGraph(mg, sys)
 end
 
-function BioBondGraph(independent_variable::Num; R = 1.0, T = 1.0)
+function BioBondGraph(independent_variable::Num, name::Symbol; R=1.0, T=1.0)
     mg = MetaDiGraph()
     set_indexing_prop!(mg, :name)
-    sys = ODESystem(Equation[], independent_variable, name = :model)
+    sys = ODESystem(Equation[], independent_variable, name=Symbol(name))
     return BioBondGraph(mg, sys, R, T)
 end
 
@@ -77,8 +76,8 @@ end
 Create a BondGraph provided a directed metagraph with node `:name` and `:type` defined for each node
 
 """
-function BondGraph(mg::AbstractMetaGraph, independent_variable::Num)
-    sys = ODESystem(Equation[], independent_variable, name = :model)
+function BondGraph(mg::AbstractMetaGraph, independent_variable::Num, name)
+    sys = ODESystem(Equation[], independent_variable, name=Symbol(name))
     return BondGraph(mg, sys)
 end
 

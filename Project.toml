@@ -5,15 +5,12 @@ version = "0.1.5"
 
 [deps]
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
-Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 GraphIO = "aa1b3936-2fda-51b9-ab35-c553d3a640a2"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MetaGraphs = "626554b9-1ddb-594c-aa3c-2596fe9399a5"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
+Publish = "f065f642-d108-4f50-8aa5-6749150a895a"
 SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
-
-[compat]
-Documenter = "0.27"

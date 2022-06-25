@@ -31,15 +31,9 @@ function get_implicit_relationship(constituitive_equation::Equation, algebraic_e
     check(x) = (isa(x, Term) && (indexin([x], params)[1] === nothing) && (indexin([x], state_variables)[1] === nothing))
     term_list = filter(check, get_variables(constituitive_equation.rhs))
     final_syms = [state_variables]
-    @show final_syms
-    @show term_list
     term_list_old = []
     # Check if term_list is equivalent to final_syms
-    @show !terms_in_final(term_list, final_syms)
-    @show (length(copy_algebraic_equations) > 0)
-    @show ((term_list .- term_list_old .== 0) isa BitVector)
     while !terms_in_final(term_list, final_syms) && (length(copy_algebraic_equations) > 0)
-        @show term_list
         term_list_old = term_list
         old_length = length(keys(substitution_dict))
         for term ∈ term_list
@@ -59,7 +53,6 @@ function get_implicit_relationship(constituitive_equation::Equation, algebraic_e
                     else
                         eqn = 0 ~ eqn
                     end
-                    @show eqn, term
                     substitution_dict[term] = Symbolics.solve_for(eqn, term)
                     # Remove Equation from Search
                     popat!(copy_algebraic_equations, i)
@@ -72,10 +65,8 @@ function get_implicit_relationship(constituitive_equation::Equation, algebraic_e
         end
         # Update Constituitive Equations
         constituitive_equation = expand(simplify(substitute(constituitive_equation, substitution_dict)))
-        @show constituitive_equation
         # Update Algebraic Equations
         copy_algebraic_equations = map(x -> substitute(x, substitution_dict), copy_algebraic_equations)
-        display(copy_algebraic_equations)
         # Update Term list in Constituitive Equation
         term_list = filter(check, get_variables(constituitive_equation.rhs))
     end
@@ -110,10 +101,8 @@ function remove_casuality(BG::AbstractBondGraph; skip::Vector{Num} = Num[])
             start_index = indexin([starting_equation], eqns)[1]
             # Sort and rearrange equations minus the starting equation
             differential_eqns, algebraic_eqns = get_diff_and_alg_eqns([eqns[1:(start_index-1)]; eqns[(start_index+1):end]])
-            @show consituitive_equation
             implicit_equation = get_implicit_relationship(consituitive_equation, algebraic_eqns, differential_eqns, state_vars, params)
             e_eqn = BG[name].e ~ expand(expand_derivatives(D(implicit_equation.rhs)))
-            display(Dict(map(j -> differential_eqns[j].rhs => differential_eqns[j].lhs, eachindex(differential_eqns))))
             e_eqn = substitute(implicit_equation,
                 Dict(
                     map(
@@ -122,7 +111,6 @@ function remove_casuality(BG::AbstractBondGraph; skip::Vector{Num} = Num[])
                     )
                 )
             )
-            @show e_eqn
             eqns[start_index] = starting_equation
             diff_eqn_index = indexin([D(BG[name].p) ~ BG[name].e], eqns)[1]
             push!(diff_indexes, diff_eqn_index)
@@ -133,11 +121,8 @@ function remove_casuality(BG::AbstractBondGraph; skip::Vector{Num} = Num[])
             start_index = indexin([starting_equation], eqns)[1]
             # Sort and rearrange equations minus the starting equation
             differential_eqns, algebraic_eqns = get_diff_and_alg_eqns([eqns[1:(start_index-1)]; eqns[(start_index+1):end]])
-            @show consituitive_equation
             implicit_equation = get_implicit_relationship(consituitive_equation, algebraic_eqns, differential_eqns, state_vars, params)
-            @show implicit_equation
             f_eqn = BG[name].f ~ expand(expand_derivatives(D(implicit_equation.rhs)))
-            display(Dict(map(j -> differential_eqns[j].rhs => differential_eqns[j].lhs, eachindex(differential_eqns))))
             f_eqn = substitute(f_eqn,
                 Dict(
                     map(
@@ -146,7 +131,6 @@ function remove_casuality(BG::AbstractBondGraph; skip::Vector{Num} = Num[])
                     )
                 )
             )
-            @show f_eqn
             eqns[start_index] = starting_equation
             diff_eqn_index = indexin([D(BG[name].q) ~ BG[name].f], eqns)[1]
             push!(diff_indexes, diff_eqn_index)

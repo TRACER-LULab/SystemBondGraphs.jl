@@ -32,14 +32,9 @@ function resolve_equations(constituitive_equation::Equation, derivative_form::Eq
         terms = filter(check, get_variables(constituitive_equation.rhs))
     end
 
-    display("----------")
     # ff(x) = SymbolicUtils.Fixpoint(SymbolicUtils.Postwalk(SymbolicUtils.add_with_div))(x)
     # Fixpoint(Postwalk(add_with_div))(x)
-    display("----------")
-    display(constituitive_equation)
     constituitive_equation = constituitive_equation.lhs ~ flatten_fractions(simplify(constituitive_equation.rhs))
-    display(constituitive_equation)
-    display("----------")
     for index in eachindex(differential_eqns)
         deq = differential_eqns[index]
         sub_dict = Dict(constituitive_equation.lhs => flatten_fractions(simplify(constituitive_equation.rhs)))
@@ -78,7 +73,6 @@ function derivative_casuality(BG; skip = [])
             derivative_form = BG[name].e ~ D(BG[name].p)
         end
         start_index = indexin([starting_equation], algebraic_eqns)[1]
-        @show start_index
         filtered_eqs = [algebraic_eqns[1:(start_index-1)]; algebraic_eqns[(start_index+1):end]]
         # display("---------")
         # display(filtered_eqs)
