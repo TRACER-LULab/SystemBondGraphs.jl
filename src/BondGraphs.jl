@@ -8,7 +8,6 @@ using LinearAlgebra
 using Graphs
 using MetaGraphs
 using FileIO
-using Documenter
 
 export BondGraph, BioBondGraph
 export add_Bond!, add_R!, add_C!, add_I!, add_M!
