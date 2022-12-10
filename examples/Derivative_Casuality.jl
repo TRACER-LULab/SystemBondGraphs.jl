@@ -41,8 +41,8 @@ sys = generate_model(dc)
 sys = structural_simplify(sys)
 ##
 u0 = [
-    dc[:L].p => 0.0,
-    dc[:J].p => 0.0,
+    dc[:J].p => 10.0,
+    dc[:b4].f => 10.0
 ]
 p = [
     dc[:T].r => 0.5,
@@ -53,7 +53,7 @@ p = [
     dc[:J].I => 1.0,
     dc[:bτ].R => 1.0
 ]
-tspan = (0.0, 1.0)
+tspan = (0.0, 100.0)
 prob = ODAEProblem(sys, u0, tspan, p)
 sol = solve(prob, Tsit5())
-plot(sol)
+plot(sol, vars = [dc[:L].p, dc[:J].p])

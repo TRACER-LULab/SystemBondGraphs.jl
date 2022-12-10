@@ -6,13 +6,13 @@ using DifferentialEquations
 println("Done imports")
 ## Create BondGraph
 @variables t
-cart_pole = BondGraph(t)
+cart_pole = BondGraph(t, :cart_pole)
 # Create Elements
 add_Se!(cart_pole, :in)
 add_I!(cart_pole, :mc)
 add_Bond!(cart_pole, :b3)
 add_Bond!(cart_pole, :b4)
-add_I!(cart_pole, :mpx; causality = true)
+add_I!(cart_pole, :mpx)
 add_Bond!(cart_pole, :b6)
 add_Bond!(cart_pole, :b7)
 add_I!(cart_pole, :J)
@@ -20,7 +20,7 @@ add_Bond!(cart_pole, :b9)
 add_Bond!(cart_pole, :b10)
 add_Bond!(cart_pole, :b11)
 add_Se!(cart_pole, :mpg)
-add_I!(cart_pole, :mpy; causality = true)
+add_I!(cart_pole, :mpy)
 println("Done Creating Elements")
 # Add Junctions
 add_1J!(cart_pole, Dict([
@@ -61,14 +61,14 @@ eqns = [
     D(x) ~ cart_pole[:mc].f,
 ]
 @named theta_model = ODESystem(eqns, cart_pole.model.iv, [θ, x], [])
-cart_pole.model = extend(cart_pole.model, theta_model)
-cart_pole
-
+sys = generate_model(cart_pole)
+sys = extend(sys, theta_model)
+sys = structural_simplify(sys)
 ##
 # model = BondGraphs.graph_to_model(cart_pole)
-@variables t
-sys = derivative_casuality(cart_pole, skip = [cart_pole[:v_x].θ]);
-@named sys = ODESystem(expand.(ModelingToolkit.get_eqs(sys)), t)
+# @variables t
+# sys = derivative_casuality(cart_pole, skip = [cart_pole[:v_x].θ]);
+# @named sys = ODESystem(expand.(ModelingToolkit.get_eqs(sys)), t)
 ##
 # mpx₊p(t) ~ mpx₊I*(mc₊p(t) / mc₊I - l*((-((-l*J₊p(t)*sin(θ(t))) / J₊I)) / (l*sin(θ(t))))*cos(θ(t)))
 ##
@@ -80,8 +80,8 @@ sys = initialize_system_structure(sys)
 u0 = [
     x => 0.0,
     θ => randn() * 3.14159 / 180,
-    cart_pole[:mc].p => 0.0,
-    cart_pole[:J].p => 0.0,
+    cart_pole[:mpx].f => 0.0,
+    cart_pole[:b10].f => 0.0,
 ]
 p = [
     l => 1.0,
@@ -95,6 +95,7 @@ p = [
 tspan = (0.0, 10.0)
 new_prob = ODAEProblem(sys, u0, tspan, p)
 sol = solve(new_prob, Tsit5())
+plot(sol, vars = [x, θ])
 
 ## TESTING
 @variables b9₊f(t) mc₊f(t) mc₊e(t) J₊e(t) θ(t) J₊p(t) b6₊e(t) mc₊p(t) mpy₊e(t) in₊e(t) b7₊e(t)
