@@ -1,6 +1,6 @@
 """
 
-Create an Bond in a BondGraph to connect Junction->Junction, OnePort->TwoPort. It creates an empty bond to be a connector between elements. 
+Create an Bond in a BondGraph to connect Junction->Junction, OnePort->TwoPort. It creates an empty bond to be a connector between elements.
 
 """
 function add_Bond!(BG::AbstractBondGraph, name)
@@ -20,7 +20,7 @@ end
 
 """
 
-Create a Linear R-Element for the bondgraph. Causality will always be false for an R-element since it does not have a "preferred" causality. 
+Create a Linear R-Element for the bondgraph. Causality will always be false for an R-element since it does not have a "preferred" causality.
 
 """
 function add_R!(BG::AbstractBondGraph, name; causality = false)
@@ -28,7 +28,7 @@ function add_R!(BG::AbstractBondGraph, name; causality = false)
     set_prop!(BG.graph, nv(BG.graph), :name, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     @parameters R
-    eqns = [e ~ R * f]
+    eqns = [0 ~ R * f - e]
     sys = ODESystem(eqns, BG.model.iv,name = name)
     props = Dict(
         :type => :R,
@@ -42,7 +42,7 @@ end
 
 
 """
-Create a Linear C-Element for analysis. Setting Causality to true represents the elements being in derivative causality. 
+Create a Linear C-Element for analysis. Setting Causality to true represents the elements being in derivative causality.
 """
 function add_C!(BG::AbstractBondGraph, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) q(BG.model.iv)
@@ -50,7 +50,7 @@ function add_C!(BG::AbstractBondGraph, name; causality = false)
     D = Differential(BG.model.iv)
     eqns = [
         D(q) ~ f,
-        e ~ q / C
+        0 ~ q / C - e
     ]
     sys = ODESystem(eqns, BG.model.iv,name = name)
     add_vertex!(BG.graph)
@@ -75,7 +75,7 @@ function add_I!(BG::AbstractBondGraph, name; causality = false)
     D = Differential(BG.model.iv)
     eqns = [
         D(p) ~ e,
-        f ~ p / I
+        0 ~ p / I - f
     ]
     sys = ODESystem(eqns,BG.model.iv, name = name)
     add_vertex!(BG.graph)
@@ -93,7 +93,7 @@ end
 
 
 """
-Create a Linear M-element with causality being set to false. Derivative causality for M-elements is still under development. 
+Create a Linear M-element with causality being set to false. Derivative causality for M-elements is still under development.
 """
 function add_M!(BG::AbstractBondGraph, name; causality = false)
     @variables e(BG.model.iv) f(BG.model.iv) p(BG.model.iv) q(BG.model.iv)
@@ -102,7 +102,7 @@ function add_M!(BG::AbstractBondGraph, name; causality = false)
     eqns = [
         D(p) ~ e,
         D(q) ~ f,
-        p ~ M * q
+        0 ~ M * q - p
     ]
     sys = ODESystem(eqns, BG.model.iv, name = name)
     add_vertex!(BG.graph)

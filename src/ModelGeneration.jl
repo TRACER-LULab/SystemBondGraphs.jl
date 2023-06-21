@@ -84,7 +84,7 @@ function graph_to_model(BG::AbstractBondGraph)
         push!(eqns, 0 ~ in_sum - out_sum)
         nodes = [out_nodes; in_nodes]
         for i ∈ 2:length(nodes)
-            push!(eqns, BG[nodes[i-1]].f ~ BG[nodes[i]].f)
+            push!(eqns, 0 ~ BG[nodes[i]].f - BG[nodes[i-1]].f)
         end
     end
     # Find all Zero Junction Nodes
@@ -105,28 +105,30 @@ function graph_to_model(BG::AbstractBondGraph)
         push!(eqns, 0 ~ in_sum - out_sum)
         nodes = [out_nodes; in_nodes]
         for i ∈ 2:length(nodes)
-            push!(eqns, BG[nodes[i-1]].e ~ BG[nodes[i]].e)
+            push!(eqns, 0 ~ BG[nodes[i]].e - BG[nodes[i-1]].e)
         end
     end
     @named junc_sys = ODESystem(eqns, model.iv, [], [])
-    model = extend(model, junc_sys)
+
+    @named model = extend(model, junc_sys)
 
     two_ports = filter_vertices(BG.graph, (g, v) -> get_prop(g, v, :type) ∈ [:Re, :TF, :GY, :MTF, :MGY])
     two_ports_sys = map(v -> get_prop(BG.graph, v, :sys), two_ports)
-    for sys ∈ two_ports_sys
-        model = compose(model, sys)
-    end
+    @named model = compose(model, two_ports_sys...)
+    # for sys ∈ two_ports_sys
+    #     model = compose(model, sys)
+    # end
 
     element_verts = filter_vertices(BG.graph, (g, v) -> get_prop(g, v, :type) ∈ [:B, :R, :C, :I, :M, :Ce, :Se, :Sf, :MPC, :MPI, :MPR])
     element_sys = map(v -> get_prop(BG.graph, v, :sys), element_verts)
-    model = compose(model, element_sys...)
-    model = extend(BG.model, model)
-
-    IP_verts = filter_vertices(BG.graph, (g, v) -> get_prop(g, v, :type) ∈ [:IP])
-    eqns = equations(model)
-    substitutions = vcat(map(v->get_prop(BG.graph, v, :subs), IP_verts)...)
-    eqns = substitute.(eqns, (Dict(substitutions), ))
-    model = ODESystem(eqns, model.iv, name = model.name)
+    @named model = compose(model, element_sys...)
+    # model = extend(BG.model, model)
+    return model
+    # IP_verts = filter_vertices(BG.graph, (g, v) -> get_prop(g, v, :type) ∈ [:IP])
+    # eqns = equations(model)
+    # substitutions = vcat(map(v->get_prop(BG.graph, v, :subs), IP_verts)...)
+    # eqns = substitute.(eqns, (Dict(substitutions), ))
+    # return ODESystem(eqns, model.iv, name = model.name)
 end
 
 """
@@ -134,12 +136,12 @@ end
 Generate an ODE System from the BondGraph Structure
 
 """
-function generate_model!(BG::AbstractBondGraph)
+function generate_model!(BG::BondGraph)
     BG.model = generate_model(BG)
 end
 
-function generate_model(BG::AbstractBondGraph)
-    model = graph_to_model(BG)
+function generate_model(BG::BondGraph)
+    graph_to_model(BG)
 end
 
 function generate_model(BG::BioBondGraph)
