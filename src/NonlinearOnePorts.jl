@@ -3,22 +3,15 @@
 Create a nonlinear R-Element with \$\\Phi_r\$ registered with modelingtoolkit.jl to prevent simplification through the nonlinear function. \$e = \\Phi_r(e, f, t, ps)\$. Params are for any parameters to the nonlinear function.
 """
 function add_R!(BG::AbstractBondGraph, Φr, ps, name; causality = false)
-    add_vertex!(BG.graph)
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     if Φr.first == :e
         eqns = [e ~ Φr.second(e, f, BG.model.iv, ps)]
     elseif Φr.first == :f
         eqns = [f ~ Φr.second(e, f, BG.model.iv, ps)]
     end
-    sys = ODESystem(eqns, BG.model.iv, name = name)
-    props = Dict(
-        :type => :R,
-        :sys => sys,
-        :causality => causality,
-        :state_var => []
-    )
-    set_props!(BG.graph, nv(BG.graph), props)
+    model = ODESystem(eqns, BG.model.iv, name = name)
+    type = :R
+    BG.graph[name] = BondGraphNode(name, model, type, Num[])
     nothing
 end
 
@@ -39,16 +32,9 @@ function add_C!(BG::AbstractBondGraph, Φc, ps, name; causality = false)
             q ~ Φc.second(e, f, q, BG.model.iv, ps) # Integral Causality Form
         ]
     end
-    sys = ODESystem(eqns, name = name)
-    add_vertex!(BG.graph)
-    props = Dict(
-        :type => :C,
-        :sys => sys,
-        :causality => causality,
-        :state_var => [sys.q]
-    )
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
-    set_props!(BG.graph, nv(BG.graph), props)
+    model = ODESystem(eqns, name = name)
+    type = :C
+    BG.graph[name] = BondGraphNode(name, model, type, [model.q])
     nothing
 end
 
@@ -69,16 +55,9 @@ function add_I!(BG::AbstractBondGraph, Φi, ps, name; causality = false)
             p ~ Φi.second(e, f, p, BG.model.iv, ps) # Integral Causality Form
         ]
     end
-    sys = ODESystem(eqns, BG.model.iv, [e, f, p], [], name = name)
-    add_vertex!(BG.graph)
-    props = Dict(
-        :type => :I,
-        :sys => sys,
-        :causality => causality,
-        :state_var => [sys.p]
-    )
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
-    set_props!(BG.graph, nv(BG.graph), props)
+    model = ODESystem(eqns, BG.model.iv, [e, f, p], [], name = name)
+    type = :I
+    BG.graph[name] = BondGraphNode(name, model, type, [model.p])
     nothing
 end
 
@@ -101,14 +80,8 @@ function add_M!(BG::AbstractBondGraph, Φm, ps, name; causality = false)
             q ~ Φm.second(e, f, p, q, BG.model.iv, ps) # Integral Causality Form
         ]
     end
-    sys = ODESystem(eqns, BG.model.iv, [e, f, p, q], [], name = name)
-    props = Dict(
-        :type => :M,
-        :sys => sys,
-        :causality => causality,
-        :state_var => [sys.p, sys.q]
-    )
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
-    set_props!(BG.graph, nv(BG.graph), props)
+    model = ODESystem(eqns, BG.model.iv, [e, f, p, q], [], name = name)
+    type = :M
+    BG.graph[name] = BondGraphNode(name, model, type, [model.q, model.p])
     nothing
 end

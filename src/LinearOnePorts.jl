@@ -1,42 +1,15 @@
 """
 
-Create an Bond in a BondGraph to connect Junction->Junction, OnePort->TwoPort. It creates an empty bond to be a connector between elements.
-
-"""
-function add_Bond!(BG::AbstractBondGraph, name)
-    @variables e(BG.model.iv) f(BG.model.iv)
-    sys = ODESystem(Equation[], BG.model.iv, [e, f], [], name = name)
-    add_vertex!(BG.graph)
-    props = Dict(
-        :type => :B,
-        :sys => sys,
-        :causality => false,
-        :state_var => []
-    )
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
-    set_props!(BG.graph, nv(BG.graph), props)
-    nothing
-end
-
-"""
-
 Create a Linear R-Element for the bondgraph. Causality will always be false for an R-element since it does not have a "preferred" causality.
 
 """
 function add_R!(BG::AbstractBondGraph, name; causality = false)
-    add_vertex!(BG.graph)
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
     @variables e(BG.model.iv) f(BG.model.iv)
     @parameters R
     eqns = [0 ~ R * f - e]
-    sys = ODESystem(eqns, BG.model.iv,name = name)
-    props = Dict(
-        :type => :R,
-        :sys => sys,
-        :causality => causality,
-        :state_var => []
-    )
-    set_props!(BG.graph, nv(BG.graph), props)
+    model = ODESystem(eqns, BG.model.iv,name = name)
+    type = :R
+    BG.graph[name] = BondGraphNode(name, model, type, Num[])
     nothing
 end
 
@@ -52,16 +25,9 @@ function add_C!(BG::AbstractBondGraph, name; causality = false)
         D(q) ~ f,
         0 ~ q / C - e
     ]
-    sys = ODESystem(eqns, BG.model.iv,name = name)
-    add_vertex!(BG.graph)
-    props = Dict(
-        :type => :C,
-        :sys => sys,
-        :causality => causality,
-        :state_var => [sys.q]
-    )
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
-    set_props!(BG.graph, nv(BG.graph), props)
+    model = ODESystem(eqns, BG.model.iv,name = name)
+    type = :C
+    BG.graph[name] = BondGraphNode(name, model, type, [model.q])
     nothing
 end
 
@@ -77,16 +43,19 @@ function add_I!(BG::AbstractBondGraph, name; causality = false)
         D(p) ~ e,
         0 ~ p / I - f
     ]
-    sys = ODESystem(eqns,BG.model.iv, name = name)
-    add_vertex!(BG.graph)
-    props = Dict(
-        :type => :I,
-        :sys => sys,
-        :causality => causality,
-        :state_var => [sys.p]
-    )
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
-    set_props!(BG.graph, nv(BG.graph), props)
+    model = ODESystem(eqns,BG.model.iv, name = name)
+    type = :I
+    BG.graph[name] = BondGraphNode(name, model, type, [model.p])
+
+    # add_vertex!(BG.graph)
+    # props = Dict(
+    #     :type => :I,
+    #     :sys => sys,
+    #     :causality => causality,
+    #     :state_var => [sys.p]
+    # )
+    # set_prop!(BG.graph, nv(BG.graph), :name, name)
+    # set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end
 
@@ -104,15 +73,18 @@ function add_M!(BG::AbstractBondGraph, name; causality = false)
         D(q) ~ f,
         0 ~ M * q - p
     ]
-    sys = ODESystem(eqns, BG.model.iv, name = name)
-    add_vertex!(BG.graph)
-    props = Dict(
-        :type => :M,
-        :sys => sys,
-        :causality => causality,
-        :state_var => [sys.p, sys.q]
-    )
-    set_prop!(BG.graph, nv(BG.graph), :name, name)
-    set_props!(BG.graph, nv(BG.graph), props)
+    model = ODESystem(eqns, BG.model.iv, name = name)
+    type = :M
+    BG.graph[name] = BondGraphNode(name, model, type, [model.q, model.p])
+
+    # add_vertex!(BG.graph)
+    # props = Dict(
+    #     :type => :M,
+    #     :sys => sys,
+    #     :causality => causality,
+    #     :state_var => [sys.p, sys.q]
+    # )
+    # set_prop!(BG.graph, nv(BG.graph), :name, name)
+    # set_props!(BG.graph, nv(BG.graph), props)
     nothing
 end

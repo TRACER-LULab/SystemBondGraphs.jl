@@ -59,76 +59,113 @@ function remove_algebraic(BG::AbstractBondGraph, model)
 end
 
 """
-
 Traverse the BondGraph Structure to create an ODESystem
-
 """
-function graph_to_model(BG::AbstractBondGraph)
-    # Find all One Junction Nodes
-    @named model = ODESystem([], BG.model.iv)
-    one_junctions = filter_vertices(BG.graph, (g, v) -> get_prop(g, v, :type) ∈ [:J1])
+function generate_model(bg::AbstractBondGraph)
+    # Algebraic Relationships for the BondGraph
     eqns = Equation[]
+
+    # Find all One Junction Nodes
+    one_junctions = filter(x->bg.graph[x].type == :OneJunction, collect(labels(bg.graph)))
     for J1 ∈ one_junctions
-        out_nodes = outneighbors(BG.graph, J1)
-        in_nodes = inneighbors(BG.graph, J1)
+        out_nodes = outneighbor_labels(bg.graph, J1)
+        out_nodes = map(x->(J1, x), out_nodes)
+
+        in_nodes = inneighbor_labels(bg.graph, J1)|>collect
+        in_nodes = map(x->(x, J1), in_nodes)
+
         if !isempty(out_nodes)
-            out_sum = sum(x -> BG[x].e, out_nodes)
+            out_sum = sum(x -> bg.graph[x...].model.e, out_nodes)
         else
             out_sum = 0
         end
         if !isempty(in_nodes)
-            in_sum = sum(x -> BG[x].e, in_nodes)
+            in_sum = sum(x -> bg.graph[x...].model.e, in_nodes)
         else
             in_sum = 0
         end
         push!(eqns, 0 ~ in_sum - out_sum)
         nodes = [out_nodes; in_nodes]
+
         for i ∈ 2:length(nodes)
-            push!(eqns, 0 ~ BG[nodes[i]].f - BG[nodes[i-1]].f)
+            push!(eqns, 0 ~ bg.graph[nodes[i]...].model.f - bg.graph[nodes[i-1]...].model.f)
         end
     end
+
     # Find all Zero Junction Nodes
-    zero_junctions = filter_vertices(BG.graph, (g, v) -> get_prop(g, v, :type) ∈ [:J0])
+    zero_junctions = filter(x -> bg.graph[x].type == :ZeroJunction, collect(labels(bg.graph)))
+
     for J0 ∈ zero_junctions
-        out_nodes = outneighbors(BG.graph, J0)
-        in_nodes = inneighbors(BG.graph, J0)
+        out_nodes = outneighbor_labels(bg.graph, J0)
+        out_nodes = map(x -> (J0, x), out_nodes)
+
+        in_nodes = inneighbor_labels(bg.graph, J0) |> collect
+        in_nodes = map(x -> (x, J0), in_nodes)
         if !isempty(out_nodes)
-            out_sum = sum(x -> BG[x].f, out_nodes)
+            out_sum = sum(x -> bg.graph[x...].model.f, out_nodes)
         else
             out_sum = 0
         end
         if !isempty(in_nodes)
-            in_sum = sum(x -> BG[x].f, in_nodes)
+            in_sum = sum(x -> bg.graph[x...].model.f, in_nodes)
         else
             in_sum = 0
         end
         push!(eqns, 0 ~ in_sum - out_sum)
         nodes = [out_nodes; in_nodes]
+        nodes = map(x -> x, nodes)
         for i ∈ 2:length(nodes)
-            push!(eqns, 0 ~ BG[nodes[i]].e - BG[nodes[i-1]].e)
+            push!(eqns, 0 ~ bg.graph[nodes[i]...].model.e - bg.graph[nodes[i-1]...].model.e)
         end
     end
-    @named junc_sys = ODESystem(eqns, model.iv, [], [])
 
-    @named model = extend(model, junc_sys)
+    # Check for the two_port relationships
+    two_ports = filter(x -> bg.graph[x].type in [:Re, :TF, :GY, :MTF, :MGY], collect(labels(bg.graph)))
+    two_ports_sys = map(v -> bg.graph[v].model, two_ports)
 
-    two_ports = filter_vertices(BG.graph, (g, v) -> get_prop(g, v, :type) ∈ [:Re, :TF, :GY, :MTF, :MGY])
-    two_ports_sys = map(v -> get_prop(BG.graph, v, :sys), two_ports)
-    @named model = compose(model, two_ports_sys...)
-    # for sys ∈ two_ports_sys
-    #     model = compose(model, sys)
-    # end
+    for TP in two_ports
+        @show TP
+        ins = inneighbor_labels(bg.graph, TP)
+        for i in ins
+            push!(eqns,
+                bg.graph[i, TP].model.f ~ bg.graph[TP].model.f_in)
+            push!(eqns,
+                bg.graph[i, TP].model.e ~ bg.graph[TP].model.e_in
+            )
+        end
+        outs = outneighbor_labels(bg.graph, TP)
+        for o in outs
+            push!(eqns,
+                bg.graph[TP, o].model.f ~ bg.graph[TP].model.f_out)
+            push!(eqns,
+                bg.graph[TP, o].model.e ~ bg.graph[TP].model.e_out
+            )
+        end
+    end
 
-    element_verts = filter_vertices(BG.graph, (g, v) -> get_prop(g, v, :type) ∈ [:B, :R, :C, :I, :M, :Ce, :Se, :Sf, :MPC, :MPI, :MPR])
-    element_sys = map(v -> get_prop(BG.graph, v, :sys), element_verts)
-    @named model = compose(model, element_sys...)
-    # model = extend(BG.model, model)
-    return model
-    # IP_verts = filter_vertices(BG.graph, (g, v) -> get_prop(g, v, :type) ∈ [:IP])
-    # eqns = equations(model)
-    # substitutions = vcat(map(v->get_prop(BG.graph, v, :subs), IP_verts)...)
-    # eqns = substitute.(eqns, (Dict(substitutions), ))
-    # return ODESystem(eqns, model.iv, name = model.name)
+    # Get all one-port systems
+    elements = filter(x -> bg.graph[x].type in [:B, :R, :C, :I, :M, :Ce, :Se, :Sf, :MPC, :MPI, :MPR], collect(labels(bg.graph)))
+    for element in elements
+        ins = inneighbor_labels(bg.graph, element)
+        for i in ins
+            push!(eqns,
+                bg.graph[i, element].model.f ~ bg.graph[element].model.f)
+            push!(eqns,
+                bg.graph[i, element].model.e ~ bg.graph[element].model.e
+            )
+        end
+        outs = outneighbor_labels(bg.graph, element)
+        for o in outs
+            push!(eqns,
+                bg.graph[element, o].model.f ~ bg.graph[element].model.f)
+            push!(eqns,
+                bg.graph[element, o].model.e ~ bg.graph[element].model.e
+            )
+        end
+    end
+    element_sys = map(v -> bg.graph[v].model, elements)
+    @named system = ODESystem(eqns, bg.model.iv, [], [], systems=[two_ports_sys;element_sys])
+    return system
 end
 
 """
@@ -136,35 +173,27 @@ end
 Generate an ODE System from the BondGraph Structure
 
 """
-function generate_model!(BG::BondGraph)
-    BG.model = generate_model(BG)
-end
+# function generate_model(BG::BioBondGraph)
+#     model = generate_model(BG)
+#     model = structural_simplify(model)
+#     RW = SymbolicUtils.Rewriters
+#     r1 = @acrule log(~x) + log(~y) => log((~x) * (~y))
+#     r2 = @rule log(~x) - log(~y) => log((~x) / (~y))
+#     r3 = @rule (~x) * log(~y) => log((~y)^(~x))
+#     r4 = @rule exp(log(~x)) => ~x
+#     r5 = @acrule exp((~x) + (~y)) => exp(~x) * exp(~y)
+#     rw1 = RW.Fixpoint(RW.Chain([r1, r2, r3, r4, r5]))
+#     rw2 = RW.Prewalk(RW.Chain([r1, r2, r3, r4, r5]))
+#     rw3 = RW.Postwalk(RW.Chain([r1, r2, r3, r4, r5]))
+#     eqns = full_equations(model)
+#     for i ∈ eachindex(eqns)
+#         eqns[i] = eqns[i].lhs ~ eqns[i].rhs |> rw3 |> rw2 |> rw1 |> expand
+#     end
+#     defaults = model.defaults
+#     model = ODESystem(eqns, model.iv, states(model), parameters(model), name = nameof(model), observed = observed(model), defaults = defaults)
+#     return structural_simplify(model)
+# end
 
-function generate_model(BG::BondGraph)
-    graph_to_model(BG)
-end
-
-function generate_model(BG::BioBondGraph)
-    model = graph_to_model(BG)
-    model = structural_simplify(model)
-    RW = SymbolicUtils.Rewriters
-    r1 = @acrule log(~x) + log(~y) => log((~x) * (~y))
-    r2 = @rule log(~x) - log(~y) => log((~x) / (~y))
-    r3 = @rule (~x) * log(~y) => log((~y)^(~x))
-    r4 = @rule exp(log(~x)) => ~x
-    r5 = @acrule exp((~x) + (~y)) => exp(~x) * exp(~y)
-    rw1 = RW.Fixpoint(RW.Chain([r1, r2, r3, r4, r5]))
-    rw2 = RW.Prewalk(RW.Chain([r1, r2, r3, r4, r5]))
-    rw3 = RW.Postwalk(RW.Chain([r1, r2, r3, r4, r5]))
-    eqns = full_equations(model)
-    for i ∈ eachindex(eqns)
-        eqns[i] = eqns[i].lhs ~ eqns[i].rhs |> rw3 |> rw2 |> rw1 |> expand
-    end
-    defaults = model.defaults
-    model = ODESystem(eqns, model.iv, states(model), parameters(model), name = nameof(model), observed = observed(model), defaults = defaults)
-    return structural_simplify(model)
-end
-
-function generate_model!(BG::BioBondGraph)
-    BG.model = generate_model(BG)
-end
+# function generate_model!(BG::BioBondGraph)
+#     BG.model = generate_model(BG)
+# end

@@ -2,7 +2,7 @@
 """
 Add a linear transformer with modulus `m`, in element name `in`, out element name `out`, and named `name`.
 """
-function add_TF!(BG::AbstractBondGraph, in, out, name)
+function add_TF!(BG::AbstractBondGraph, name)
     # @parameters m
     add_vertex!(BG.graph)
     node_index = nv(BG.graph)
@@ -11,7 +11,7 @@ function add_TF!(BG::AbstractBondGraph, in, out, name)
     add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])
     @parameters m
     eqns = [
-        0 ~ ParentScope(BG[in].e) - m * ParentScope(BG[out].e), 
+        0 ~ ParentScope(BG[in].e) - m * ParentScope(BG[out].e),
         0 ~ m * ParentScope(BG[in].f) - ParentScope(BG[out].f)
     ]
 
@@ -22,7 +22,7 @@ function add_TF!(BG::AbstractBondGraph, in, out, name)
                 :sys  => sys,
                 :ps   => []
             )
-    set_props!(BG.graph, node_index, props)    
+    set_props!(BG.graph, node_index, props)
     nothing
 end
 
@@ -30,25 +30,19 @@ end
 """
 Add a linear gyrator with modulus `r`, in element name `in`, out element name `out`, and named `name`.
 """
-function add_GY!(BG::AbstractBondGraph, in, out, name)
-    add_vertex!(BG.graph)
-    node_index = nv(BG.graph)
-    set_prop!(BG.graph, node_index, :name, name)
-    add_edge!(BG.graph, BG.graph[name, :name], BG.graph[in, :name])
-    add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])
+function add_GY!(bg::AbstractBondGraph, name)
+
+    @variables e_in(bg.model.iv) f_in(bg.model.iv)
+    @variables e_out(bg.model.iv) f_out(bg.model.iv)
     @parameters r
+
     eqns = [
-        0 ~ ParentScope(BG[in].e) - r * ParentScope(BG[out].f), 
-        0 ~ r * ParentScope(BG[in].f) - ParentScope(BG[out].e)
+        0 ~ e_in - r * f_out,
+        0 ~ r * f_in - e_out
     ]
-    sys = ODESystem(eqns, BG.model.iv, name = name)
-    props = Dict(
-                :type => :GY,
-                :eqns => eqns,
-                :sys  => sys,
-                :ps   => [r]
-            )
-    set_props!(BG.graph, node_index, props)  
+    model = ODESystem(eqns, bg.model.iv, [e_in, e_out, f_in, f_out], [r], name=name)
+    type = :GY
+    bg.graph[name] = BondGraphNode(name, model, type, Num[])
     nothing
 end
 
@@ -56,26 +50,31 @@ end
 """
 Add a modulated transformer with modulus `m`, in element name `in`, out element name `out`, and named `name`.
 """
-function add_MTF!(BG::AbstractBondGraph, m, in, out, name)
+function add_MTF!(bg::AbstractBondGraph, m, name)
     # @parameters m
-    add_vertex!(BG.graph)
-    node_index = nv(BG.graph)
-    set_prop!(BG.graph, node_index, :name, name)
-    add_edge!(BG.graph, BG.graph[name, :name], BG.graph[in, :name])
-    add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])
+    # add_vertex!(BG.graph)
+    # node_index = nv(BG.graph)
+    # set_prop!(BG.graph, node_index, :name, name)
+    # add_edge!(BG.graph, BG.graph[name, :name], BG.graph[in, :name])
+    # add_edge!(BG.graph, BG.graph[name, :name], BG.graph[out, :name])
+    @variables e_in(bg.model.iv) f_in(bg.model.iv)
+    @variables e_out(bg.model.iv) f_out(bg.model.iv)
 
     eqns = [
-        0 ~ ParentScope(BG[in].e) - ParentScope(m) * ParentScope(BG[out].e), 
-        0 ~ ParentScope(m) * ParentScope(BG[in].f) - ParentScope(BG[out].f)
+        0 ~ e_in - ParentScope(m) * e_out,
+        0 ~ ParentScope(m) * f_in - f_out
     ]
-    sys = ODESystem(eqns, BG.model.iv, name = name)
-    props = Dict(
-                :type => :MTF,
-                :eqns => eqns,
-                :sys  => sys,
-                :ps   => []
-            )
-    set_props!(BG.graph, node_index, props)
+    model = ODESystem(eqns, bg.model.iv, name = name)
+    type = :MTF
+    bg.graph[name] = BondGraphNode(name, model, type, Num[])
+
+    # props = Dict(
+    #             :type => :MTF,
+    #             :eqns => eqns,
+    #             :sys  => sys,
+    #             :ps   => []
+    #         )
+    # set_props!(BG.graph, node_index, props)
     nothing
 end
 

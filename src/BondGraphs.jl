@@ -1,13 +1,14 @@
 module BondGraphs
 
-using DifferentialEquations
-using ModelingToolkit
+using Reexport
+@reexport using ModelingToolkit
+@reexport using Symbolics
+@reexport using Graphs
 using SymbolicUtils
-using Symbolics
 using LinearAlgebra
-using Graphs
-using MetaGraphs
+@reexport using MetaGraphsNext
 using FileIO
+using ProtoStructs
 
 export BondGraph, BioBondGraph
 export add_Bond!, add_R!, add_C!, add_I!, add_M!
@@ -15,57 +16,73 @@ export add_Se!, add_Sf!
 export add_TF!, add_GY!
 export add_MTF!, add_MGY!
 export add_1J!, add_0J!
+export add_bond!
 export add_IP!
 export generate_model!, generate_model
 export state_space
 export get_graph, savebondgraph, loadbondgraph
 export remove_algebraic, remove_casuality
 export derivative_casuality
-
+export graph_to_model_new
 ## Function to create a generic Model
 abstract type AbstractBondGraph end
 
-mutable struct BondGraph <: AbstractBondGraph
-    graph::MetaDiGraph
+@proto struct BondGraph <: AbstractBondGraph
+    graph::AbstractGraph
     model::ODESystem
 end
 
-mutable struct BioBondGraph <: AbstractBondGraph
-    graph::MetaDiGraph
+@proto struct BioBondGraph <: AbstractBondGraph
+    graph::AbstractGraph
     model::ODESystem
-    R
-    T
+    R::Number
+    T::Number
+end
+
+@proto struct BondGraphNode
+    name::Symbol
+    model::ODESystem
+    type::Symbol
+    state_var::Vector{Num}
+end
+
+@proto struct BondGraphEdge
+    name::Symbol
+    model::ODESystem
 end
 """
 
 Get the ODE System Corresponding to the Specific Element
 
 """
-Base.getindex(BG::AbstractBondGraph, node::Symbol) = get_prop(BG.graph, BG.graph[node, :name], :sys)
-
-"""
-
-Get the system corresponding to Node - `node`
-
-"""
-Base.getindex(BG::AbstractBondGraph, node::Int) = get_prop(BG.graph, node, :sys)
-
-
+Base.getindex(bg::AbstractBondGraph, node::Symbol) = bg.graph[node].model
+Base.getindex(bg::AbstractBondGraph, node1::Symbol, node2::Symbol) = bg.graph[node1, node2].model
+Base.copy(bg::BondGraph) = BondGraph(copy(bg.graph), deepcopy(bg.model))
 """
 
 Create an empty BondGraph to be populated during the analysis
 
 """
-function BondGraph(independent_variable::Num, name)
-    mg = MetaDiGraph()
-    set_indexing_prop!(mg, :name)
+function BondGraph(independent_variable::Num, name::Symbol)
+    mg = MetaGraph(
+        DiGraph(),
+        label_type = Symbol,
+        vertex_data_type = BondGraphNode,
+        edge_data_type = BondGraphEdge,
+        graph_data = "")
+    # set_indexing_prop!(mg, :name)
     sys = ODESystem(Equation[], independent_variable, name=Symbol(name))
     return BondGraph(mg, sys)
 end
 
 function BioBondGraph(independent_variable::Num, name::Symbol; R=1.0, T=1.0)
-    mg = MetaDiGraph()
-    set_indexing_prop!(mg, :name)
+    mg = MetaGraph(
+        DiGraph(),
+        label_type = Symbol,
+        vertex_data_type = BondGraphNode,
+        edge_data_type = BondGraphEdge,
+        graph_data = "")
+    # set_indexing_prop!(mg, :name)
     sys = ODESystem(Equation[], independent_variable, name=Symbol(name))
     return BioBondGraph(mg, sys, R, T)
 end
@@ -75,7 +92,7 @@ end
 Create a BondGraph provided a directed metagraph with node `:name` and `:type` defined for each node
 
 """
-function BondGraph(mg::AbstractMetaGraph, independent_variable::Num, name)
+function BondGraph(mg::AbstractGraph, independent_variable::Num, name)
     sys = ODESystem(Equation[], independent_variable, name=Symbol(name))
     return BondGraph(mg, sys)
 end
@@ -93,4 +110,5 @@ include("IO.jl")
 include("DerivativeCausality.jl")
 include("NewDC.jl")
 include("InformationProcessor.jl")
+include("Connect.jl")
 end # module
