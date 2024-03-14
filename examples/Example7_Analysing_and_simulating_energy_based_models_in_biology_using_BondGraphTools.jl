@@ -2,12 +2,12 @@
 Recreating the work presented in "Analysing and simulating energy-based models in biology using BondGraphTools" by Peter Cudmore, Michael Pan, Peter J. Gawthrop, Edmund J. Crampin 2021
 =#
 using BondGraphs
+using OrdinaryDiffEq
 using Plots
-using DifferentialEquations
 
 # Model Reaction X+A ⇋ Y ⇋ Z ⇋ X+B
 @parameters t
-model = BioBondGraph(t, :chem, R = 8.314, T = 310.0)
+model = BioBondGraph(t, R = 8.314, T = 310.0)
 
 ## Add Species
 add_Ce!(model, :X)
@@ -42,12 +42,12 @@ sys = structural_simplify(sys)
 ## Setup System
 ## Set Parameters
 ps = [
-    model[:X].k => 1.0,
-    model[:Y].k => 2.0,
-    model[:Z].k => 3.0,
-    model[:XY].r => 1.0,
-    model[:YZ].r => 2.0,
-    model[:ZX].r => 3.0,
+    model[:X].model.k => 1.0,
+    model[:Y].model.k => 2.0,
+    model[:Z].model.k => 3.0,
+    model[:XY].model.r => 1.0,
+    model[:YZ].model.r => 2.0,
+    model[:ZX].model.r => 3.0,
 ]
 
 ## Set Timespan
@@ -55,9 +55,9 @@ tspan = (00.0, 1.0)
 
 ## Set Initial Conditions
 u0 = [
-    model[:X].q => 2.0,
-    model[:Y].q => 2.0,
-    model[:Z].q => 2.0
+    model[:X].model.q => 2.0,
+    model[:Y].model.q => 2.0,
+    model[:Z].model.q => 2.0
 ]
 
 ## Create ODE Problem
@@ -65,6 +65,4 @@ prob = ODEProblem(sys, u0, tspan, ps)
 
 ## Solve the system
 sol = solve(prob, Tsit5())
-
-## Plot the solution
-plot(sol, ylims=(-2, 4))
+plot(sol)

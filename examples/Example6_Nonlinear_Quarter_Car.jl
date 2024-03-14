@@ -1,10 +1,11 @@
 using BondGraphs
 using ModelingToolkit
-using DifferentialEquations
+using OrdinaryDiffEq
 using IfElse
+using Plots
 # Create Bond graph
 @parameters t
-bg = BondGraph(t, :qc)
+bg = BondGraph(t)
 # Create nonlinear Element Functions
 # Parameters
 @parameters h, d, U, ks1, ks2, qs0, kt, B
@@ -61,24 +62,25 @@ p = Dict{Num, Float64}()
 u0 = Dict{Num, Float64}()
 fₛ = 1.0
 ωₛ = 2 * π * fₛ
-p[bg[:m_s].I]    = 320
-p[bg[:m_us].I]   = p[bg[:m_s].I] / 6
-p[bg[:v_i].U]    = 0.9
-p[bg[:v_i].d]    = 1.0
-p[bg[:v_i].h]    = 0.25
-p[bg[:C_9].ks1]  = p[bg[:m_s].I] * ωₛ^2
-p[bg[:C_9].ks2]  = 10 * p[bg[:C_9].ks1]
-p[bg[:C_2].kt]   = 10 * p[bg[:C_9].ks1]
-u0[bg[:C_9].q]   = p[bg[:m_s].I] * 9.81 / p[bg[:C_9].ks1]
-u0[bg[:C_2].q]   = (p[bg[:m_s].I] + p[bg[:m_us].I]) * 9.81 / p[bg[:C_2].kt]
-p[bg[:C_9].qs0]  = 1.3 * u0[bg[:C_9].q]
-p[bg[:R_8].B]    = 1500.0
-p[bg[:mg_us].Se] = 9.81 * p[bg[:m_us].I]
-p[bg[:mg_s].Se]  = 9.81 * p[bg[:m_s].I]
-u0[bg[:m_us].p]  = 0.0
-u0[bg[:m_s].p]   = 0.0
+p[bg[:m_s].model.I]    = 320
+p[bg[:m_us].model.I]   = p[bg[:m_s].model.I] / 6
+p[bg[:v_i].model.U]    = 0.9
+p[bg[:v_i].model.d]    = 1.0
+p[bg[:v_i].model.h]    = 0.25
+p[bg[:C_9].model.ks1]  = p[bg[:m_s].model.I] * ωₛ^2
+p[bg[:C_9].model.ks2]  = 10 * p[bg[:C_9].model.ks1]
+p[bg[:C_2].model.kt]   = 10 * p[bg[:C_9].model.ks1]
+u0[bg[:C_9].model.q]   = p[bg[:m_s].model.I] * 9.81 / p[bg[:C_9].model.ks1]
+u0[bg[:C_2].model.q]   = (p[bg[:m_s].model.I] + p[bg[:m_us].model.I]) * 9.81 / p[bg[:C_2].model.kt]
+p[bg[:C_9].model.qs0]  = 1.3 * u0[bg[:C_9].model.q]
+p[bg[:R_8].model.B]    = 1500.0
+p[bg[:mg_us].model.Se] = 9.81 * p[bg[:m_us].model.I]
+p[bg[:mg_s].model.Se]  = 9.81 * p[bg[:m_s].model.I]
+u0[bg[:m_us].model.p]  = 0.0
+u0[bg[:m_s].model.p]   = 0.0
 
 # ## Create ODAE Problem
 tspan = (0.0, 5.0)
-prob = ODAEProblem(sys, u0, tspan, p)
+prob = ODEProblem(sys, u0, tspan, p)
 sol = solve(prob, Tsit5())
+plot(sol)

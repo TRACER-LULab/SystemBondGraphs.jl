@@ -3,7 +3,7 @@ using BondGraphs
 using DifferentialEquations
 # Create BondGraph
 @variables t
-bg = BondGraph(t, :bg)
+bg = BondGraph(t)
 # Add One Ports
 add_Se!(bg, :in)
 add_I!(bg, :mc)
@@ -38,32 +38,37 @@ add_bond!(bg, :J0_y, :v_p_y, :edge_11)
 add_bond!(bg, :mpg, :v_p_y, :edge_12)
 add_bond!(bg, :v_p_y, :mpy, :edge_13)
 # Add the MTF Equations
-D = Differential(bg.model.iv)
+D = Differential(bg.graph_data.iv)
 eqns = [
-    D(θ) ~ bg[:J].f,
-    D(x) ~ bg[:mc].f,
+    D(θ) ~ bg[:J].model.f,
+    D(x) ~ bg[:mc].model.f,
 ]
-@named theta_model = ODESystem(eqns, bg.model.iv, [θ, x], [])
+@named theta_model = ODESystem(eqns, bg.graph_data.iv, [θ, x], [])
 # Extend and build the model
 sys = generate_model(bg)
 sys = extend(sys, theta_model)
 sys = structural_simplify(sys)
 # Initialize and test the system
 u0 = [
-    x => 0.0,
-    θ => -5 * 3.14159 / 180,
-    bg[:mpx].f => 0.0,
-    bg[:v_y].f_out => 0.0,
+    θ => -π,
+    x => 0.01,
+    bg[:mpx].model.f => 0.0,
+    bg[:mpy].model.f => 0.0,
+    bg[:v_y].model.f_in => 0.0,
+    bg[:mpy].model.e => 0.0,
+    ModelingToolkit.D(bg[:mc].model.f) => 0.0,
+    ModelingToolkit.D(bg[:v_y].model.f_in) => 0.0
 ]
 p = [
     l => 1.0,
-    bg[:mc].I => 1.0,
-    bg[:mpx].I => 1.0,
-    bg[:mpy].I => 1.0,
-    bg[:J].I => 1.0^2 * 1.0,
-    bg[:mpg].Se => 1.0 * 9.81,
-    bg[:in].Se => 0.0,
+    bg[:mc].model.I => 1.0,
+    bg[:mpx].model.I => 1.0,
+    bg[:mpy].model.I => 1.0,
+    bg[:J].model.I => 1.0^2 * 1.0,
+    bg[:mpg].model.Se => 1.0 * 9.81,
+    bg[:in].model.Se => 0.0,
 ]
 tspan = (0.0, 10.0)
-new_prob = ODAEProblem(sys, u0, tspan, p)
-sol = solve(new_prob, Tsit5())
+new_prob = ODEProblem(sys, u0, tspan, p)
+sol = solve(new_prob, Rodas5())
+plot(sol)

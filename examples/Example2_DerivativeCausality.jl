@@ -1,7 +1,9 @@
 using BondGraphs
+using OrdinaryDiffEq
+using Plots
 #
 @variables t
-bg = BondGraph(t, :bg)
+bg = BondGraph(t)
 # Add One Ports
 add_Se!(bg, :ec)
 add_R!(bg, :Rw)
@@ -31,19 +33,23 @@ add_bond!(bg, :J1_2, :bτ, :edge_9)
 sys = generate_model(bg)
 sys = structural_simplify(sys)
 # Simulate System
+f_t = ModelingToolkit.D(bg[:T].model.f_out)
 u0 = [
-    bg[:J].p => 10.0,
-    bg[:T].e_out => 10.0
-]
+    bg[:J].model.p => 10.0,
+    bg[:kτ].model.q => 10.0,
+    f_t => 0.0
+]|>Dict
 p = [
-    bg[:T].r => 0.5,
-    bg[:Rw].R => 0.010,
-    bg[:L].I => 1.0,
-    bg[:kτ].C => 10.0,
-    bg[:J].I => 1.0,
-    bg[:bτ].R => 0.1,
-    bg[:ec].Se => 20.0,
-]
+    bg[:T].model.r => 0.5,
+    bg[:Rw].model.R => 0.010,
+    bg[:L].model.I => 1.0,
+    bg[:kτ].model.C => 10.0,
+    bg[:J].model.I => 1.0,
+    bg[:bτ].model.R => 0.1,
+    bg[:ec].model.Se => 20.0,
+]|>Dict
 tspan = (0.0, 100.0)
-prob = ODAEProblem(sys, u0, tspan, p)
-sol = solve(prob, Tsit5())
+prob = ODEProblem(sys, u0, tspan, p)
+sol = solve(prob, Rodas5())
+plot(sol)
+s

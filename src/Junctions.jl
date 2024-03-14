@@ -1,13 +1,13 @@
-function add_1J!(bg::AbstractBondGraph, name::Symbol)
-    model = ODESystem(Equation[],bg.model.iv, name = name)
+function add_1J!(bg, name::Symbol)
+    model = ODESystem(Equation[],bg.graph_data.iv, name = name)
     type = :OneJunction
-    bg.graph[name] = BondGraphNode(name, model, type, Num[])
+    bg[name] = BondGraphNode(model, type)
     nothing
 end
 
-function add_0J!(bg::AbstractBondGraph, name::Symbol)
-    model = ODESystem(Equation[], bg.model.iv, name=name)
+function add_0J!(bg, name::Symbol)
+    model = ODESystem(Equation[], bg.graph_data.iv, name=name)
     type = :ZeroJunction
-    bg.graph[name] = BondGraphNode(name, model, type, Num[])
+    bg[name] = BondGraphNode(model, type)
     nothing
 end

@@ -1,5 +1,4 @@
 using BondGraphs
-using ModelingToolkit
 using DifferentialEquations
 ##
 affinity_ATP_hydrolysis = 50000 / 8.314 / 310
@@ -140,7 +139,7 @@ function mapk_cascade_factory!(BG, name)
             S(name * "cycle4_MP") => true,
             S(name * "cycle5_M") => true
         ), S(name * "J_MKP"))
-    # Connect MAPKPase    
+    # Connect MAPKPase
     add_0J!(BG, Dict(
             S(name * "MAPKPase") => false,
             S(name * "cycle4_Pho") => true,
@@ -235,4 +234,3 @@ res[1, :] .= res[1, :] ./ maximum(res[1, :])
 res[2, :] .= res[2, :] ./ maximum(res[2, :])
 res[3, :] .= res[3, :] ./ maximum(res[3, :])
 plot(init_mkkkk, res', xscale = :log, labels = ["MKPP" "MKKPP" "MKKKP"], legend = :topleft, xlabel = "Input (MKKKK) Concentration (μM)", ylabel = "Normalized Concentration", title = "Figure 5c", xticks = 10.0.^(-4:2:0))
- 

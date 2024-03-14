@@ -2,7 +2,7 @@ using BondGraphs
 using ModelingToolkit: linearize_symbolic, inputs
 # Create Bond Graphs and Model
 @variables t ω(t)
-mat = BondGraph(t, :motor)
+mat = BondGraph(t)
 # Add One-Ports
 add_I!(mat, :L)
 add_R!(mat, :R)
@@ -28,6 +28,6 @@ add_bond!(mat, :τ, :J12, :edge_8)
 # Generate Model
 model = generate_model(mat)
 # Generate the State-Space Model
-(;A, B, C, D), sys = linearize_symbolic(model, inputs(model), [mat[:J].f], simplify = true)
-A * states(sys) + B * inputs(sys)
-C * states(sys) + D * inputs(sys)
+(;A, B, C, D), sys = linearize_symbolic(model, inputs(model), [mat[:J].model.f], simplify = true)
+A * unknowns(sys) + B * inputs(sys)
+C * unknowns(sys) + D * inputs(sys)
