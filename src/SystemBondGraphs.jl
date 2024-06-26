@@ -1,4 +1,4 @@
-module BondGraphs
+module SystemBondGraphs
 
 using Reexport
 @reexport using ModelingToolkit

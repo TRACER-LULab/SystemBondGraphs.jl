@@ -1,5 +1,4 @@
 [deps]
-BondGraphs = "81b6dc42-80d7-44f0-b878-76c33e6b41d1"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 ControlSystems = "a6e380b2-a6ca-5380-bf3e-84a91bcd477e"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"

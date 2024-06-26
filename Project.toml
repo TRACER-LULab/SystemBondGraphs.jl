@@ -1,4 +1,4 @@
-name = "BondGraphs"
+name = "SystemBondGraphs"
 uuid = "81b6dc42-80d7-44f0-b878-76c33e6b41d1"
 authors = ["Carson Farmer <59753859+cfarm6@users.noreply.github.com>"]
 version = "0.1.0"

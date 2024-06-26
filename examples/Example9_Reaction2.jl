@@ -51,8 +51,9 @@ prob = ODEProblem(model, u0, tspan, ps)
 sol = solve(prob, Tsit5())
 # Plot the results
 s = sol(0.0:0.01:2.0)
-CairoMakie.lines!(ax, s.t, s[mapk[:A].model.q], label=L"q_A")
-CairoMakie.lines!(ax, s.t, s[mapk[:B].model.q], label=L"q_B")
-CairoMakie.lines!(ax, s.t, s[mapk[:C].model.q], label=L"q_C")
+f, ax, p = CairoMakie.plot(sol, idxs = [mapk[:A].model.q, mapk[:B].model.q,mapk[:C].model.q],axis=(xlabel="Time (t)", ylabel="Concentration (q)"))
+# CairoMakie.lines!(ax, s.t, s[mapk[:A].model.q], label=L"q_A")
+# CairoMakie.lines!(ax, s.t, s[mapk[:B].model.q], label=L"q_B")
+# CairoMakie.lines!(ax, s.t, s[mapk[:C].model.q], label=L"q_C")
 axislegend(position=:rb)
 f
