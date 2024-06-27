@@ -39,10 +39,7 @@ add_bond!(bg, :mpg, :v_p_y, :edge_12)
 add_bond!(bg, :v_p_y, :mpy, :edge_13)
 # Add the MTF Equations
 D = Differential(bg.graph_data.iv)
-eqns = [
-    D(θ) ~ bg[:J].model.f,
-    D(x) ~ bg[:mc].model.f,
-]
+eqns = [D(θ) ~ bg[:J].model.f, D(x) ~ bg[:mc].model.f]
 @named theta_model = ODESystem(eqns, bg.graph_data.iv, [θ, x], [])
 # Extend and build the model
 sys = generate_model(bg)
@@ -50,14 +47,14 @@ sys = extend(sys, theta_model)
 sys, _ = structural_simplify(sys, (inputs(sys), []))
 # Initialize and test the system
 u0 = [
-    θ => -π+0.01,
+    θ => -π + 0.01,
     x => 0.01,
     bg[:mpx].model.f => 0.0,
     bg[:mpy].model.f => 0.0,
     bg[:v_y].model.f_in => 0.0,
     bg[:mpy].model.e => 0.0,
     ModelingToolkit.D(bg[:mc].model.f) => 0.0,
-    ModelingToolkit.D(bg[:v_y].model.f_in) => 0.0
+    ModelingToolkit.D(bg[:v_y].model.f_in) => 0.0,
 ]
 p = [
     l => 1.0,

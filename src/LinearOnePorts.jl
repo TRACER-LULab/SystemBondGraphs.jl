@@ -7,9 +7,9 @@ function add_R!(bg, name; causality = false)
     @variables e(bg.graph_data.iv) f(bg.graph_data.iv)
     @parameters R
     eqns = [0 ~ R * f - e]
-    model = ODESystem(eqns, bg.graph_data.iv,name = name)
+    model = ODESystem(eqns, bg.graph_data.iv, name = name)
     type = :R
-    bg[name] = BondGraphNode( model, type)
+    bg[name] = BondGraphNode(model, type)
     nothing
 end
 
@@ -21,13 +21,10 @@ function add_C!(bg, name; causality = false)
     @variables e(bg.graph_data.iv) f(bg.graph_data.iv) q(bg.graph_data.iv)
     @parameters C
     D = Differential(bg.graph_data.iv)
-    eqns = [
-        D(q) ~ f,
-        0 ~ q / C - e
-    ]
-    model = ODESystem(eqns, bg.graph_data.iv,name = name)
+    eqns = [D(q) ~ f, 0 ~ q / C - e]
+    model = ODESystem(eqns, bg.graph_data.iv, name = name)
     type = :C
-    bg[name] = BondGraphNode( model, type)
+    bg[name] = BondGraphNode(model, type)
     nothing
 end
 
@@ -39,13 +36,10 @@ function add_I!(bg, name; causality = false)
     @variables e(bg.graph_data.iv) f(bg.graph_data.iv) p(bg.graph_data.iv)
     @parameters I
     D = Differential(bg.graph_data.iv)
-    eqns = [
-        D(p) ~ e,
-        0 ~ p / I - f
-    ]
-    model = ODESystem(eqns,bg.graph_data.iv, name = name)
+    eqns = [D(p) ~ e, 0 ~ p / I - f]
+    model = ODESystem(eqns, bg.graph_data.iv, name = name)
     type = :I
-    bg[name] = BondGraphNode( model, type)
+    bg[name] = BondGraphNode(model, type)
 
     # add_vertex!(bg.graph)
     # props = Dict(
@@ -65,17 +59,15 @@ end
 Create a Linear M-element with causality being set to false. Derivative causality for M-elements is still under development.
 """
 function add_M!(bg, name; causality = false)
-    @variables e(bg.graph_data.iv) f(bg.graph_data.iv) p(bg.graph_data.iv) q(bg.graph_data.iv)
+    @variables e(bg.graph_data.iv) f(bg.graph_data.iv) p(bg.graph_data.iv) q(
+        bg.graph_data.iv,
+    )
     @parameters M
     D = Differential(bg.graph_data.iv)
-    eqns = [
-        D(p) ~ e,
-        D(q) ~ f,
-        0 ~ M * q - p
-    ]
+    eqns = [D(p) ~ e, D(q) ~ f, 0 ~ M * q - p]
     model = ODESystem(eqns, bg.graph_data.iv, name = name)
     type = :M
-    bg[name] = BondGraphNode( model, type)
+    bg[name] = BondGraphNode(model, type)
 
     # add_vertex!(bg.graph)
     # props = Dict(

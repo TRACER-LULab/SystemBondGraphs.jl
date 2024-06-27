@@ -24,11 +24,21 @@ function terms_in_final(term_list, final_syms)
     return complete
 end
 
-function get_implicit_relationship(constituitive_equation::Equation, algebraic_equations::Vector{Equation}, differential_equations::Vector{Equation}, state_variables::Vector{Num}, params)
+function get_implicit_relationship(
+    constituitive_equation::Equation,
+    algebraic_equations::Vector{Equation},
+    differential_equations::Vector{Equation},
+    state_variables::Vector{Num},
+    params,
+)
     substitution_dict = Dict([])
     old_length = -1
     copy_algebraic_equations = copy(algebraic_equations)
-    check(x) = (isa(x, Term) && (indexin([x], params)[1] === nothing) && (indexin([x], state_variables)[1] === nothing))
+    check(x) = (
+        isa(x, Term) &&
+        (indexin([x], params)[1] === nothing) &&
+        (indexin([x], state_variables)[1] === nothing)
+    )
     term_list = filter(check, get_variables(constituitive_equation.rhs))
     final_syms = [state_variables]
     term_list_old = []
@@ -64,9 +74,11 @@ function get_implicit_relationship(constituitive_equation::Equation, algebraic_e
             (found) ? (break) : ()
         end
         # Update Constituitive Equations
-        constituitive_equation = expand(simplify(substitute(constituitive_equation, substitution_dict)))
+        constituitive_equation =
+            expand(simplify(substitute(constituitive_equation, substitution_dict)))
         # Update Algebraic Equations
-        copy_algebraic_equations = map(x -> substitute(x, substitution_dict), copy_algebraic_equations)
+        copy_algebraic_equations =
+            map(x -> substitute(x, substitution_dict), copy_algebraic_equations)
         # Update Term list in Constituitive Equation
         term_list = filter(check, get_variables(constituitive_equation.rhs))
     end
@@ -87,7 +99,9 @@ function remove_casuality(BG::AbstractBondGraph; skip::Vector{Num} = Num[])
     diff_indexes = []
     implicit_eqns = []
     # Get State-Variables for Derivative Casuality Elements
-    fn(g, v) = (get_prop(g, v, :type) == :C || get_prop(g, v, :type) == :I) && !get_prop(g, v, :causality)
+    fn(g, v) =
+        (get_prop(g, v, :type) == :C || get_prop(g, v, :type) == :I) &&
+        !get_prop(g, v, :causality)
     state_vars = map(v -> get_prop(BG.graph, v, :state_var), filter_vertices(BG.graph, fn))
     state_vars = reduce(vcat, state_vars)
     # Get Nodes with Derivative Causality
@@ -100,16 +114,24 @@ function remove_casuality(BG::AbstractBondGraph; skip::Vector{Num} = Num[])
             starting_equation = BG[name].f ~ BG[name].p / BG[name].I
             start_index = indexin([starting_equation], eqns)[1]
             # Sort and rearrange equations minus the starting equation
-            differential_eqns, algebraic_eqns = get_diff_and_alg_eqns([eqns[1:(start_index-1)]; eqns[(start_index+1):end]])
-            implicit_equation = get_implicit_relationship(consituitive_equation, algebraic_eqns, differential_eqns, state_vars, params)
+            differential_eqns, algebraic_eqns =
+                get_diff_and_alg_eqns([eqns[1:(start_index-1)]; eqns[(start_index+1):end]])
+            implicit_equation = get_implicit_relationship(
+                consituitive_equation,
+                algebraic_eqns,
+                differential_eqns,
+                state_vars,
+                params,
+            )
             e_eqn = BG[name].e ~ expand(expand_derivatives(D(implicit_equation.rhs)))
-            e_eqn = substitute(implicit_equation,
+            e_eqn = substitute(
+                implicit_equation,
                 Dict(
                     map(
                         j -> differential_eqns[j].lhs => differential_eqns[j].rhs,
-                        eachindex(differential_eqns)
-                    )
-                )
+                        eachindex(differential_eqns),
+                    ),
+                ),
             )
             eqns[start_index] = starting_equation
             diff_eqn_index = indexin([D(BG[name].p) ~ BG[name].e], eqns)[1]
@@ -120,16 +142,24 @@ function remove_casuality(BG::AbstractBondGraph; skip::Vector{Num} = Num[])
             starting_equation = BG[name].e ~ BG[name].q / BG[name].C
             start_index = indexin([starting_equation], eqns)[1]
             # Sort and rearrange equations minus the starting equation
-            differential_eqns, algebraic_eqns = get_diff_and_alg_eqns([eqns[1:(start_index-1)]; eqns[(start_index+1):end]])
-            implicit_equation = get_implicit_relationship(consituitive_equation, algebraic_eqns, differential_eqns, state_vars, params)
+            differential_eqns, algebraic_eqns =
+                get_diff_and_alg_eqns([eqns[1:(start_index-1)]; eqns[(start_index+1):end]])
+            implicit_equation = get_implicit_relationship(
+                consituitive_equation,
+                algebraic_eqns,
+                differential_eqns,
+                state_vars,
+                params,
+            )
             f_eqn = BG[name].f ~ expand(expand_derivatives(D(implicit_equation.rhs)))
-            f_eqn = substitute(f_eqn,
+            f_eqn = substitute(
+                f_eqn,
                 Dict(
                     map(
                         j -> differential_eqns[j].lhs => differential_eqns[j].rhs,
-                        eachindex(differential_eqns)
-                    )
-                )
+                        eachindex(differential_eqns),
+                    ),
+                ),
             )
             eqns[start_index] = starting_equation
             diff_eqn_index = indexin([D(BG[name].q) ~ BG[name].f], eqns)[1]

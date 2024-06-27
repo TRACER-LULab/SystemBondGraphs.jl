@@ -9,28 +9,36 @@ function kinase_factory!(BG, name; KM = 1.0, KE = 1.0)
     for i ∈ 1:6
         add_Bond!(BG, S(name * "B$(i)"))
     end
-    add_1J!(BG, Dict(
+    add_1J!(
+        BG,
+        Dict(
             S(name * "B1") => true,
             S(name * "B2") => false,
             S(name * "ATP") => true,
-            S(name * "M") => true
-        ), S(name * "J_M"))
-    add_1J!(BG, Dict(
+            S(name * "M") => true,
+        ),
+        S(name * "J_M"),
+    )
+    add_1J!(
+        BG,
+        Dict(
             S(name * "B5") => true,
             S(name * "MP") => false,
             S(name * "ADP") => false,
-            S(name * "B6") => false
-        ), S(name * "J_MP"))
-    add_0J!(BG, Dict(
-            S(name * "B3") => true,
-            S(name * "B4") => false,
-            S(name * "C") => false
-        ), S(name * "J_C"))
-    add_0J!(BG, Dict(
-            S(name * "B6") => true,
-            S(name * "E") => false,
-            S(name * "B1") => false
-        ), S(name * "J_E"))
+            S(name * "B6") => false,
+        ),
+        S(name * "J_MP"),
+    )
+    add_0J!(
+        BG,
+        Dict(S(name * "B3") => true, S(name * "B4") => false, S(name * "C") => false),
+        S(name * "J_C"),
+    )
+    add_0J!(
+        BG,
+        Dict(S(name * "B6") => true, S(name * "E") => false, S(name * "B1") => false),
+        S(name * "J_E"),
+    )
     add_Re!(BG, S(name * "B2"), S(name * "B3"), S(name * "Re1"))
     add_Re!(BG, S(name * "B4"), S(name * "B5"), S(name * "Re2"))
     kinase_parameters!(BG, name, KM = KM, KE = KE)

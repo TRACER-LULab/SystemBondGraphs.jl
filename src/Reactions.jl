@@ -1,8 +1,5 @@
 ## Add Chemostats - BioModeling
-export add_Chemostat!,
-        add_Flowstat!,
-        add_Ce!,
-        add_Re!
+export add_Chemostat!, add_Flowstat!, add_Ce!, add_Re!
 """
 Create a linear chemostat
 """
@@ -30,16 +27,8 @@ function add_Ce!(bg, name)
     @variables e(bg.graph_data.iv) f(bg.graph_data.iv) q(bg.graph_data.iv)
     @parameters k
     D = Differential(bg.graph_data.iv)
-    eqns = [
-            D(q) ~ f,
-            e ~ bg.graph_data.R*bg.graph_data.T*log(k*q)
-            ]
-    model = ODESystem(
-            eqns,
-            bg.graph_data.iv,
-            [e, f, q],
-            [k],
-            name = name)
+    eqns = [D(q) ~ f, e ~ bg.graph_data.R * bg.graph_data.T * log(k * q)]
+    model = ODESystem(eqns, bg.graph_data.iv, [e, f, q], [k], name = name)
     type = :Ce
     bg[name] = BondGraphNode(model, type)
     nothing
@@ -56,10 +45,15 @@ function add_Re!(bg, name)
 
     eqns = [
         0 ~ f_in + f_out,
-        0 ~ f_out - r * (exp(e_in / bg.graph_data.R / bg.graph_data.T) - exp(e_out / bg.graph_data.R / bg.graph_data.T))
+        0 ~
+            f_out -
+            r * (
+                exp(e_in / bg.graph_data.R / bg.graph_data.T) -
+                exp(e_out / bg.graph_data.R / bg.graph_data.T)
+            ),
     ]
 
-    model = ODESystem(eqns, bg.graph_data.iv, [e_in, e_out, f_in, f_out], [r], name=name)
+    model = ODESystem(eqns, bg.graph_data.iv, [e_in, e_out, f_in, f_out], [r], name = name)
     type = :Re
     bg[name] = BondGraphNode(model, type)
     nothing

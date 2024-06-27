@@ -13,16 +13,16 @@ function phosphorylation_cycle_factory!(BG, name; KM = 1.0, KMP = 1.0, KKin = 1.
     phosphatase_factory!(BG, name * "P_", KMP = KMP)
     phosphorylation_cycle_parameters!(BG, name, KMP = KMP, KM = KM, KKin = KKin)
     # Input and Output ports for cycle
-    add_0J!(BG, Dict(
-            S(name * "M") => false,
-            S(name * "K_M") => false,
-            S(name * "P_M") => true
-        ), S(name * "J_M"))
-    add_0J!(BG, Dict(
-            S(name * "MP") => false,
-            S(name * "K_MP") => true,
-            S(name * "P_MP") => false
-        ), S(name * "J_MP"))
+    add_0J!(
+        BG,
+        Dict(S(name * "M") => false, S(name * "K_M") => false, S(name * "P_M") => true),
+        S(name * "J_M"),
+    )
+    add_0J!(
+        BG,
+        Dict(S(name * "MP") => false, S(name * "K_MP") => true, S(name * "P_MP") => false),
+        S(name * "J_MP"),
+    )
     # Swap Species inputs for bond elements
     swap_bond(BG, name * "K_M")
     swap_bond(BG, name * "K_MP")

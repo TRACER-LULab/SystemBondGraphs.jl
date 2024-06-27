@@ -35,11 +35,7 @@ add_bond!(bg, :J02, :Gn, :edge_10)
 # Generate System
 sys = generate_model(bg)
 sys, _ = structural_simplify(sys, (inputs(sys), []))
-u0 = [
-    bg[:C1].model.q => 0.0,
-    bg[:C2].model.q => -0.1,
-    bg[:L].model.p => 0.0001
-]
+u0 = [bg[:C1].model.q => 0.0, bg[:C2].model.q => -0.1, bg[:L].model.p => 0.0001]
 ps = [
     bg[:R].model.R => 12.5e-3,
     bg[:G].model.R => 0.565,
@@ -48,7 +44,7 @@ ps = [
     bg[:L].model.I => 18.0,
     bg[:Gn].model.E => -2.0,
     bg[:Gn].model.Ga => 0.757576,
-    bg[:Gn].model.Gb => 0.409091
+    bg[:Gn].model.Gb => 0.409091,
 ]
 tspan = (0.0, 1e3)
 prob = ODEProblem(sys, u0, tspan, ps)

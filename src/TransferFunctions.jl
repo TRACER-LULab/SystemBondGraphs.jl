@@ -37,12 +37,25 @@ function state_space(BG::AbstractBondGraph, model::ODESystem; ps = Dict{Any,Any}
     for i in eachindex(state_vars)
         for j in eachindex(state_vars)
             state_dict[state_vars[j]] = 1.0
-            A[i, j] = simplify(substitute(substitute(eqns_dict[state_vars[i]].rhs, state_dict), in_dict)) |> expand
+            A[i, j] =
+                simplify(
+                    substitute(
+                        substitute(eqns_dict[state_vars[i]].rhs, state_dict),
+                        in_dict,
+                    ),
+                ) |> expand
             state_dict[state_vars[j]] = 0.0
         end
         for j in eachindex(ins)
             in_dict[ins[j]] = 1.0
-            B[i, j] = expand(simplify(substitute(substitute(eqns_dict[state_vars[i]].rhs, state_dict), in_dict)))
+            B[i, j] = expand(
+                simplify(
+                    substitute(
+                        substitute(eqns_dict[state_vars[i]].rhs, state_dict),
+                        in_dict,
+                    ),
+                ),
+            )
             in_dict[ins[j]] = 0.0
         end
     end

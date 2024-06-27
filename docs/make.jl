@@ -4,7 +4,12 @@ using Documenter
 
 # bib = CitationBibliography(joinpath(@__DIR__, "src", "paper.bib"); style = :numeric)
 
-DocMeta.setdocmeta!(SystemBondGraphs, :DocTestSetup, :(using SystemBondGraphs); recursive = true)
+DocMeta.setdocmeta!(
+    SystemBondGraphs,
+    :DocTestSetup,
+    :(using SystemBondGraphs);
+    recursive = true,
+)
 
 makedocs(;
     # plugins = [bib],

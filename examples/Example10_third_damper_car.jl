@@ -9,8 +9,14 @@ using ModelingToolkit: inputs, linearize_symbolic
 using CairoMakie
 # Plot Setup
 set_theme!(theme_latexfonts())
-f = Figure(size=(1500, 750) ./ 2)
-mag_ax = Axis(f[1, 1], xlabel="Frequency (Hz)", ylabel=L"\text{Amplitude Ratio }\left[\frac{e_{mus_2}}{V_{in} b}\right]", xticks=0:5:30, yticks=0:0.5:3.0)
+f = Figure(size = (1500, 750) ./ 2)
+mag_ax = Axis(
+    f[1, 1],
+    xlabel = "Frequency (Hz)",
+    ylabel = L"\text{Amplitude Ratio }\left[\frac{e_{mus_2}}{V_{in} b}\right]",
+    xticks = 0:5:30,
+    yticks = 0:0.5:3.0,
+)
 colors = Makie.wong_colors()
 linestyle = [:solid, :dash]
 mag_plots = []
@@ -103,7 +109,7 @@ ps = Dict([
     conventional[:b1].model.R => b,
     conventional[:b2].model.R => b,
     conventional[:m_s].model.I => 680,
-    third_damper[:b].model.R => b
+    third_damper[:b].model.R => b,
 ])
 
 # Operating Point for Linearization
@@ -123,7 +129,7 @@ conventional_model = generate_model(conventional)
 conventional_system = substitute(conventional_model, ps)
 
 third_damper_system = substitute(generate_model(third_damper), ps)
-systems = Dict("Conventional"=>conventional_system, "Third Damper"=>third_damper_system)
+systems = Dict("Conventional" => conventional_system, "Third Damper" => third_damper_system)
 # Iterate over the different systems
 for (i, (name, system)) in enumerate(systems)
     for (j, m) in enumerate([40, 60, 80])
@@ -137,14 +143,26 @@ for (i, (name, system)) in enumerate(systems)
         ])
         system_m = substitute(system, m_ps)
         #
-        (; A, B, C, D), _ = linearize_symbolic(system_m, inputs(system_m), [conventional[:m_us2].model.e], simplify=true, op=op)
-        A, B, C, D = map(x->Symbolics.value.(x), [A,B,C,D])
+        (; A, B, C, D), _ = linearize_symbolic(
+            system_m,
+            inputs(system_m),
+            [conventional[:m_us2].model.e],
+            simplify = true,
+            op = op,
+        )
+        A, B, C, D = map(x -> Symbolics.value.(x), [A, B, C, D])
         state_space = ss(A, B, C, D)
         mag, _, w = bode(state_space, (0.0:0.1:30.0) .* 2π)
-        p = lines!(mag_ax, w ./ 2π, mag[1, 1, :] ./ b, color=colors[j], linestyle=linestyle[i])
+        p = lines!(
+            mag_ax,
+            w ./ 2π,
+            mag[1, 1, :] ./ b,
+            color = colors[j],
+            linestyle = linestyle[i],
+        )
         push!(mag_plots, p)
         push!(labels, "$name: $m kg")
     end
 end
-Legend(f[2, 1], mag_plots, labels, nbanks=3, tellheight=true, tellwidth=false)
+Legend(f[2, 1], mag_plots, labels, nbanks = 3, tellheight = true, tellwidth = false)
 f

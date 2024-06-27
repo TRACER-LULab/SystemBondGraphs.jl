@@ -29,6 +29,7 @@ add_bond!(mat, :τ, :J12, :edge_8)
 model = generate_model(mat)
 parameters(model)
 ## Generate the State-Space Model
-(;A, B, C, D), sys = linearize_symbolic(model, inputs(model), [mat[:J].model.f], simplify = true,)
+(; A, B, C, D), sys =
+    linearize_symbolic(model, inputs(model), [mat[:J].model.f], simplify = true)
 A * unknowns(sys) + B * inputs(sys)
 C * unknowns(sys) + D * inputs(sys)

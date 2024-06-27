@@ -4,9 +4,12 @@ Create a Symbolic/Constant Effort Input. Creates a system with parameters `Se` f
 """
 function add_Se!(bg, name)
     @variables e(bg.graph_data.iv) f(bg.graph_data.iv)
-    @variables Se(bg.graph_data.iv) [description="Parameter for effort input function", input = true]
+    @variables Se(bg.graph_data.iv) [
+        description = "Parameter for effort input function",
+        input = true,
+    ]
     eqns = [0 ~ Se - e]
-    model = ODESystem(eqns, bg.graph_data.iv, [e, f, Se], [], name=name)
+    model = ODESystem(eqns, bg.graph_data.iv, [e, f, Se], [], name = name)
     type = :Se
     bg[name] = BondGraphNode(model, type)
     nothing
@@ -18,7 +21,7 @@ Create a nonlinear effort input with \$e = S_e(e, f, iv, params)\$ with name
 function add_Se!(bg, Se, params::Vector{}, name)
     @variables e(bg.graph_data.iv) f(bg.graph_data.iv)
     eqns = [0 ~ e - Se(e, f, bg.graph_data.iv, params)]
-    model = ODESystem(eqns, bg.graph_data.iv, [e, f], params, name=name)
+    model = ODESystem(eqns, bg.graph_data.iv, [e, f], params, name = name)
     type = :Se
     bg[name] = BondGraphNode(model, type)
     nothing
@@ -32,7 +35,7 @@ function add_Sf!(bg, name)
     @variables e(bg.graph_data.iv) f(bg.graph_data.iv)
     @variables Sf(bg.graph_data.iv) [input = true]
     eqns = [0 ~ f - Sf]
-    model = ODESystem(eqns, bg.graph_data.iv, [e, f, Sf], [], name=name)
+    model = ODESystem(eqns, bg.graph_data.iv, [e, f, Sf], [], name = name)
     type = :Sf
     bg[name] = BondGraphNode(model, type)
     nothing
@@ -45,7 +48,7 @@ function add_Sf!(bg, Sf, params::Vector{}, name)
     @variables e(bg.graph_data.iv) f(bg.graph_data.iv)
     eqns = [0 ~ f - Sf(e, f, bg.graph_data.iv, params)]
     # sys = ODESystem(eqns, bg.graph_data.iv, [e, f], params, name = name)
-    model = ODESystem(eqns, bg.graph_data.iv, [e, f], params, name=name)
+    model = ODESystem(eqns, bg.graph_data.iv, [e, f], params, name = name)
     type = :Sf
     bg[name] = BondGraphNode(model, type)
     nothing

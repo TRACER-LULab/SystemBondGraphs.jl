@@ -62,22 +62,24 @@ Create an empty BondGraph to be populated during the analysis
 function BondGraph(iv::Num)
     mg = MetaGraph(
         DiGraph(),
-        label_type=Symbol,
-        vertex_data_type=BondGraphNode,
-        edge_data_type=BondGraphEdge,
-        graph_data=BondGraphData(iv))
+        label_type = Symbol,
+        vertex_data_type = BondGraphNode,
+        edge_data_type = BondGraphEdge,
+        graph_data = BondGraphData(iv),
+    )
     # set_indexing_prop!(mg, :name)
     # sys = ODESystem(Equation[], independent_variable, name=Symbol(name))
     return mg #BondGraph(mg, sys)
 end
 
-function ChemBondGraph(iv::Num; R=1.0, T=1.0)
+function ChemBondGraph(iv::Num; R = 1.0, T = 1.0)
     mg = MetaGraph(
         DiGraph(),
-        label_type=Symbol,
-        vertex_data_type=BondGraphNode,
-        edge_data_type=BondGraphEdge,
-        graph_data=ChemBondGraphData(iv, R, T))
+        label_type = Symbol,
+        vertex_data_type = BondGraphNode,
+        edge_data_type = BondGraphEdge,
+        graph_data = ChemBondGraphData(iv, R, T),
+    )
     # set_indexing_prop!(mg, :name)
     # sys = ODESystem(Equation[], independent_variable, name=Symbol(name))
     return mg# BioBondGraph(mg, sys, R, T)

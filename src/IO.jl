@@ -4,7 +4,7 @@ Remove Unecesary fields to only save the graph structure of the bond graph. Retu
 function get_graph(BG::AbstractBondGraph)
     g = BG.graph
     for name in [g.vprops[i][:name] for i ∈ 1:length(keys(g.vprops))]
-        rem_prop!(g, g[name, :name],  :causality)
+        rem_prop!(g, g[name, :name], :causality)
         rem_prop!(g, g[name, :name], :state_var)
         rem_prop!(g, g[name, :name], :sys)
         props(g, g[name, :name]) |> display

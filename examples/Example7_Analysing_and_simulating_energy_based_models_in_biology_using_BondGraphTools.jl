@@ -7,7 +7,7 @@ using CairoMakie
 
 # Model Reaction X+A ⇋ Y ⇋ Z ⇋ X+B
 @parameters t
-bg = ChemBondGraph(t, R=8.314, T=310.0)
+bg = ChemBondGraph(t, R = 8.314, T = 310.0)
 
 ## Add Species
 add_Ce!(bg, :X)
@@ -54,11 +54,7 @@ ps = [
 tspan = (00.0, 1.0)
 
 ## Set Initial Conditions
-u0 = [
-    bg[:X].model.q => 2.0,
-    bg[:Y].model.q => 2.0,
-    bg[:Z].model.q => 2.0
-]
+u0 = [bg[:X].model.q => 2.0, bg[:Y].model.q => 2.0, bg[:Z].model.q => 2.0]
 
 ## Create ODE Problem
 prob = ODEProblem(sys, u0, tspan, ps)

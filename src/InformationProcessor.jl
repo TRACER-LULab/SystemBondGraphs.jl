@@ -26,16 +26,13 @@ function add_IP!(BG::AbstractBondGraph, inputs, outputs, IP, name::Symbol)
     #     outputs[k] = ParentScope.(v)
     # end
     out_results = IP(inputs)
-    subs = Pair{Any, Any}[]
+    subs = Pair{Any,Any}[]
     for (k, v) in out_results
-        push!(subs,(outputs[k] .=> v)...)
+        push!(subs, (outputs[k] .=> v)...)
     end
 
     # sys = ODESystem(eqns, BG.model.iv, [], [], name = name)
-    props = Dict(
-        :type => :IP, 
-        :subs => subs
-    )
+    props = Dict(:type => :IP, :subs => subs)
     set_props!(BG.graph, node_index, props)
     subs
     # nothing

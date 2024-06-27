@@ -64,20 +64,22 @@ Traverse the BondGraph Structure to create an ODESystem
 function _generate_model(bg)
     # Check if graph is disconnected
     if !is_connected(bg.graph)
-        error("An element(s) in the bond graph is not connected to the rest of the graph. Please ensure that all elements are connected.")
+        error(
+            "An element(s) in the bond graph is not connected to the rest of the graph. Please ensure that all elements are connected.",
+        )
     end
     # Algebraic Relationships for the BondGraph
     eqns = Equation[]
 
     # Find all One Junction Nodes
-    one_junctions = filter(x->bg[x].type == :OneJunction, collect(labels(bg)))
+    one_junctions = filter(x -> bg[x].type == :OneJunction, collect(labels(bg)))
     for J1 ∈ one_junctions
         out_nodes = outneighbor_labels(bg, J1)
-        out_nodes = map(x->(J1, x), out_nodes)
+        out_nodes = map(x -> (J1, x), out_nodes)
         # out_nodes = map(x ->x, out_nodes)
 
-        in_nodes = inneighbor_labels(bg, J1)|>collect
-        in_nodes = map(x->(x, J1), in_nodes)
+        in_nodes = inneighbor_labels(bg, J1) |> collect
+        in_nodes = map(x -> (x, J1), in_nodes)
         # in_nodes = map(x->x, in_nodes)
 
         if !isempty(out_nodes)
@@ -133,52 +135,42 @@ function _generate_model(bg)
     for TP in two_ports
         ins = inneighbor_labels(bg, TP)
         for i in ins
-            push!(eqns,
-                0 ~ bg[TP].model.f_in - bg[i, TP].model.f
-            )
-            push!(eqns,
-                0 ~ bg[TP].model.e_in - bg[i, TP].model.e
-            )
+            push!(eqns, 0 ~ bg[TP].model.f_in - bg[i, TP].model.f)
+            push!(eqns, 0 ~ bg[TP].model.e_in - bg[i, TP].model.e)
         end
         outs = outneighbor_labels(bg, TP)
         for o in outs
-            push!(eqns,
-                0 ~ bg[TP].model.f_out - bg[TP, o].model.f
-            )
-            push!(eqns,
-                0 ~ bg[TP].model.e_out - bg[TP, o].model.e
-            )
+            push!(eqns, 0 ~ bg[TP].model.f_out - bg[TP, o].model.f)
+            push!(eqns, 0 ~ bg[TP].model.e_out - bg[TP, o].model.e)
         end
     end
 
     # Get all one-port systems
-    elements = filter(x -> bg[x].type in [:B, :R, :C, :I, :M, :Ce, :Se, :Sf, :MPC, :MPI, :MPR], collect(labels(bg)))
+    elements = filter(
+        x -> bg[x].type in [:B, :R, :C, :I, :M, :Ce, :Se, :Sf, :MPC, :MPI, :MPR],
+        collect(labels(bg)),
+    )
     for element in elements
         ins = inneighbor_labels(bg, element)
         for i in ins
-            push!(eqns,
-                0 ~ bg[element].model.f - bg[i, element].model.f
-            )
-            push!(eqns,
-                0 ~ bg[element].model.e - bg[i, element].model.e
-            )
+            push!(eqns, 0 ~ bg[element].model.f - bg[i, element].model.f)
+            push!(eqns, 0 ~ bg[element].model.e - bg[i, element].model.e)
         end
         outs = outneighbor_labels(bg, element)
         for o in outs
-            push!(eqns,
-                0 ~ bg[element].model.f - bg[element, o].model.f
-            )
-            push!(eqns,
-                0 ~ bg[element].model.e - bg[element, o].model.e
-            )
+            push!(eqns, 0 ~ bg[element].model.f - bg[element, o].model.f)
+            push!(eqns, 0 ~ bg[element].model.e - bg[element, o].model.e)
         end
     end
     element_sys = map(v -> bg[v].model, elements)
-    @named system = ODESystem(eqns, bg.graph_data.iv, [], [], systems=[two_ports_sys;element_sys])
+    @named system =
+        ODESystem(eqns, bg.graph_data.iv, [], [], systems = [two_ports_sys; element_sys])
     return system
 end
 
-function generate_model(bg::MetaGraph{A,B,C,D,E,DATA,F,G}) where {A,B,C,D,E,DATA <: BondGraphData,F,G}
+function generate_model(
+    bg::MetaGraph{A,B,C,D,E,DATA,F,G},
+) where {A,B,C,D,E,DATA<:BondGraphData,F,G}
     _generate_model(bg)
 end
 """
@@ -186,7 +178,9 @@ end
 Generate an ODE System from the BondGraph Structure
 
 """
-function generate_model(bg::MetaGraph{A,B,C,D,E,DATA,F,G}) where {A,B,C,D,E,DATA <: ChemBondGraphData,F,G}
+function generate_model(
+    bg::MetaGraph{A,B,C,D,E,DATA,F,G},
+) where {A,B,C,D,E,DATA<:ChemBondGraphData,F,G}
     model = _generate_model(bg)
     model = structural_simplify(model)
     RW = SymbolicUtils.Rewriters
@@ -203,7 +197,15 @@ function generate_model(bg::MetaGraph{A,B,C,D,E,DATA,F,G}) where {A,B,C,D,E,DATA
         eqns[i] = eqns[i].lhs ~ eqns[i].rhs |> rw3 |> rw2 |> rw1 |> expand
     end
     defaults = model.defaults
-    model = ODESystem(eqns, model.iv, unknowns(model), parameters(model), name = nameof(model), observed = observed(model), defaults = defaults)
+    model = ODESystem(
+        eqns,
+        model.iv,
+        unknowns(model),
+        parameters(model),
+        name = nameof(model),
+        observed = observed(model),
+        defaults = defaults,
+    )
     return structural_simplify(model)
 end
 

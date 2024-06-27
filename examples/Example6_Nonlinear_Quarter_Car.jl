@@ -16,13 +16,11 @@ Fₛ(e, f, q, t, p) = IfElse.ifelse(q <= qs0, ks1 * q, ks1 * qs0 + ks2 * (q - qs
 # Cubic Damper
 Fd(e, f, t, p) = B * f^3
 # Velocity Input
-vᵢ(e, f, t, p) = IfElse.ifelse(U / d * t > 0.0,
-                                IfElse.ifelse(
-                                    (U / d * t) <= 1,
-                                    h / d * π * U * cos(π * U / d * t),
-                                    0.0),
-                                0.0
-                                )
+vᵢ(e, f, t, p) = IfElse.ifelse(
+    U / d * t > 0.0,
+    IfElse.ifelse((U / d * t) <= 1, h / d * π * U * cos(π * U / d * t), 0.0),
+    0.0,
+)
 # Create Nonlinear Elements
 add_Sf!(bg, vᵢ, [U, d, h], :v_i)
 add_C!(bg, :e => Fₜ, [kt], :C_2)
@@ -58,26 +56,27 @@ sys = generate_model(bg)
 sys, _ = structural_simplify(sys, (inputs(sys), []))
 
 # Add Model Parameters and Initial Conditions Table 5.1
-p = Dict{Num, Float64}()
-u0 = Dict{Num, Float64}()
+p = Dict{Num,Float64}()
+u0 = Dict{Num,Float64}()
 fₛ = 1.0
 ωₛ = 2 * π * fₛ
-p[bg[:m_s].model.I]    = 320
-p[bg[:m_us].model.I]   = p[bg[:m_s].model.I] / 6
-p[bg[:v_i].model.U]    = 0.9
-p[bg[:v_i].model.d]    = 1.0
-p[bg[:v_i].model.h]    = 0.25
-p[bg[:C_9].model.ks1]  = p[bg[:m_s].model.I] * ωₛ^2
-p[bg[:C_9].model.ks2]  = 10 * p[bg[:C_9].model.ks1]
-p[bg[:C_2].model.kt]   = 10 * p[bg[:C_9].model.ks1]
-u0[bg[:C_9].model.q]   = p[bg[:m_s].model.I] * 9.81 / p[bg[:C_9].model.ks1]
-u0[bg[:C_2].model.q]   = (p[bg[:m_s].model.I] + p[bg[:m_us].model.I]) * 9.81 / p[bg[:C_2].model.kt]
-p[bg[:C_9].model.qs0]  = 1.3 * u0[bg[:C_9].model.q]
-p[bg[:R_8].model.B]    = 1500.0
+p[bg[:m_s].model.I] = 320
+p[bg[:m_us].model.I] = p[bg[:m_s].model.I] / 6
+p[bg[:v_i].model.U] = 0.9
+p[bg[:v_i].model.d] = 1.0
+p[bg[:v_i].model.h] = 0.25
+p[bg[:C_9].model.ks1] = p[bg[:m_s].model.I] * ωₛ^2
+p[bg[:C_9].model.ks2] = 10 * p[bg[:C_9].model.ks1]
+p[bg[:C_2].model.kt] = 10 * p[bg[:C_9].model.ks1]
+u0[bg[:C_9].model.q] = p[bg[:m_s].model.I] * 9.81 / p[bg[:C_9].model.ks1]
+u0[bg[:C_2].model.q] =
+    (p[bg[:m_s].model.I] + p[bg[:m_us].model.I]) * 9.81 / p[bg[:C_2].model.kt]
+p[bg[:C_9].model.qs0] = 1.3 * u0[bg[:C_9].model.q]
+p[bg[:R_8].model.B] = 1500.0
 p[bg[:mg_us].model.Se] = 9.81 * p[bg[:m_us].model.I]
-p[bg[:mg_s].model.Se]  = 9.81 * p[bg[:m_s].model.I]
-u0[bg[:m_us].model.p]  = 0.0
-u0[bg[:m_s].model.p]   = 0.0
+p[bg[:mg_s].model.Se] = 9.81 * p[bg[:m_s].model.I]
+u0[bg[:m_us].model.p] = 0.0
+u0[bg[:m_s].model.p] = 0.0
 
 # ## Create ODAE Problem
 tspan = (0.0, 5.0)
