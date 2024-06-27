@@ -1,57 +1,45 @@
 # Package Imports
 
+## Mass - Spring - Damper Example
+
 ```@example 1
+using OrdinaryDiffEq
 using SystemBondGraphs
-using Optimization, OptimizationOptimJL
-using ComponentArrays: ComponentVector
-using ForwardDiff
-using CairoMakie, MakiePublication
+using CairoMakie
+using Latexify
+
 set_theme!(theme_latexfonts())
 ```
 
-For commonly used datasets in hyperelastic modelling, such as the `Treloar1944Uniaxial` data, functions are available for getting the datasets:
+Create the time variable and the empty bond graph:
 
 ```@example 1
-f = Figure(size = (800,800))
-ax = Makie.Axis(f[1,1], xlabel = "Stretch [-]", ylabel = "Stress [kg/cm²]")
-treloar_data = Treloar1944Uniaxial()
-scatter!(ax, 
-    getindex.(treloar_data.data.λ, 1), 
-    getindex.(treloar_data.data.s, 1), 
-    label = "Treloar 1944 Experimental",
-    color = :black
-)
-axislegend(position = :lt)
-save("treloar_data.png", f)
+@variables t
+bg = BondGraph(t)
 ```
 
-![](treloar_data.png)
-
-Multiple dispatch is used on the corresponding function to calculate the values. Based on the model passed to the function, the correct method will be used in the calculation. StrainEnergyDensity, SecondPiolaKirchoffStressTensor, and CauchyStressTensor accept the deformation state as either the principal components in a vector, `[λ₁, λ₂, λ₃]` or as the deformation gradient matrix, `Fᵢⱼ`. The returned value matches the type of the input. Parameters are accessed by field allowing for `structs`, `NamedTuples`, or other field-based data-types such as those in ComponentArrays.jl and LabelledArrays.jl. For example, the NeoHookean model is accessed with:
+Elements in the bond graph are added with their appropriate add function and assigned a unique name in the bond graph:
 
 ```@example 1
-ψ = NeoHookean()
-λ⃗ = [2.0, sqrt(1/2), sqrt(1/2)]
-p = (μ = 10.0, )
-W = StrainEnergyDensity(ψ, λ⃗, p)
-return W # hide
+add_R!(bg, :R)
+add_C!(bg, :C)
+add_I!(bg, :I)
+add_Se!(bg, :Se)
 ```
 
-or
+Next, the 1-Junction is added:
 
 ```@example 1
-F = rand(3,3)
-p = (μ = 20.0, )
-W = StrainEnergyDensity(ψ, F, p)
-return W # hide
+add_1J!(bg, :J1_1)
 ```
 
-A method for creating an `OptimizationProblem` compatible with `Optimization.jl` is provided. To fit the NeoHookean model to the Treloar data previously loaded, an additional field-indexed array is used as the initial guess to `HyperelasticProblem`. It is recommendedto use ComponentArrays.jl for optimization of model parameters.
+The edges are connected with the `add_bond!` function which modifies the bond graph to have a power bond connecting the nodes. The function is takes the source and sink edge for the power bond. 
 
 ```@example 1
-prob = HyperelasticProblem(ψ, treloar_data, ComponentVector(μ = 0.2), ad_type = AutoForwardDiff())
-sol = solve(prob, LBFGS())
-return sol # hide
+add_bond!(bg, :J1_1, :R, :e1)
+add_bond!(bg, :J1_1, :C, :e2)
+add_bond!(bg, :J1_1, :I, :e3)
+add_bond!(bg, :Se, :J1_1, :e4)
 ```
 
 For fiting multiple models to the same dataset, 
