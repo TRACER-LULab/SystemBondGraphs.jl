@@ -2418,7 +2418,7 @@ version = "5.32.0"
 
 [[deps.SystemBondGraphs]]
 deps = ["Graphs", "LinearAlgebra", "MetaGraphsNext", "ModelingToolkit", "Reexport"]
-git-tree-sha1 = "9258914702d472bd6541eeb90173e8c37c558bce"
+git-tree-sha1 = "1988b668eaf9b942bfb4e34299f4d326c2f11f59"
 repo-rev = "main"
 repo-url = "https://github.com/TRACER-LULab/SystemBondGraphs.jl.git"
 uuid = "81b6dc42-80d7-44f0-b878-76c33e6b41d1"

@@ -1,5 +1,6 @@
 # using Plots
 using OrdinaryDiffEq
+using ModelingToolkit: inputs
 using SystemBondGraphs
 using CairoMakie
 using Latexify
@@ -49,13 +50,14 @@ sol = solve(prob, Tsit5())
 latexify(full_equations(sys))
 # plot(sol)
 ##
-set_theme!(theme_latexfonts())
-f = Figure(size = (400,400))
-ax = Axis(f[1,1], xlabel = "Time (t)")
-# f, ax, p = CairoMakie.plot(sol,  axis=(xlabel="Time (t)", ))
-
-s = sol(0.0:0.01:10.0)
-CairoMakie.lines!(ax, s.t, s[bg[:I].model.p], label = L"p_I")
-CairoMakie.lines!(ax, s.t, s[bg[:C].model.q], label = L"q_C")
-axislegend()
+# set_theme!(theme_latexfonts())
+# f = Figure(size = (400,400))
+# ax = Axis(f[1,1], xlabel = "Time (t)")
+f, ax, p = CairoMakie.plot(sol,  axis=(xlabel="Time (t)", ))
+save("msd.png", f)
+# s = sol(0.0:0.01:10.0)
+# CairoMakie.lines!(ax, s.t, s[bg[:I].model.p], label = L"p_I")
+# CairoMakie.lines!(ax, s.t, s[bg[:C].model.q], label = L"q_C")
+# axislegend()
+# f
 f
