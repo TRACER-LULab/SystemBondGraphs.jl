@@ -1,6 +1,6 @@
-using BondGraphs
+using SystemBondGraphs
 using OrdinaryDiffEq
-using Plots
+using CairoMakie
 #
 @variables t
 bg = BondGraph(t)
@@ -31,13 +31,13 @@ add_bond!(bg, :J1_2, :J, :edge_8)
 add_bond!(bg, :J1_2, :bτ, :edge_9)
 # Generate Model
 sys = generate_model(bg)
-sys = structural_simplify(sys)
+sys, _ = structural_simplify(sys, (inputs(sys), []))
 # Simulate System
-f_t = ModelingToolkit.D(bg[:T].model.f_out)
+e_out_t = ModelingToolkit.D(bg[:T].model.e_out)
 u0 = [
     bg[:J].model.p => 10.0,
-    bg[:kτ].model.q => 10.0,
-    f_t => 0.0
+    bg[:kτ].model.e => 10.0,
+    e_out_t => 0.0
 ]|>Dict
 p = [
     bg[:T].model.r => 0.5,
@@ -51,5 +51,4 @@ p = [
 tspan = (0.0, 100.0)
 prob = ODEProblem(sys, u0, tspan, p)
 sol = solve(prob, Rodas5())
-plot(sol)
-s
+CairoMakie.plot(sol)

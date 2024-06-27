@@ -1,16 +1,24 @@
+using SystemBondGraphs
+using Documenter
+# using DocumenterCitations
 
-using Pkg
+# bib = CitationBibliography(joinpath(@__DIR__, "src", "paper.bib"); style = :numeric)
 
-Pkg.develop(path = "..")
+DocMeta.setdocmeta!(SystemBondGraphs, :DocTestSetup, :(using SystemBondGraphs); recursive = true)
 
-using Publish
-using Hyperelastics
-using Artifacts, LazyArtifacts
+makedocs(;
+    # plugins = [bib],
+    modules = [SystemBondGraphs],
+    authors = "Carson Farmer <59753859+cfarm6@users.noreply.github.com> and contributors",
+    repo = "https://github.com/TRACER-LULab/SystemBondGraphs.jl/blob/{commit}{path}#{line}",
+    sitename = "SystemBondGraphs.jl",
+    format = Documenter.HTML(;
+        prettyurls = get(ENV, "CI", "false") == "true",
+        canonical = "https://TRACER-LULab.github.io/SystemBondGraphs.jl",
+        edit_link = "main",
+        assets = String[],
+    ),
+    pages = ["Home" => "index.md", "API" => "API.md", "Example" => "example.md"],
+)
 
-# override default theme
-cp(artifact"Tracer-Theme", "../_Tracer-Theme"; force=true)
-
-function build_and_deploy(label)
-    rm(label; recursive = true, force = true)
-    deploy(Hyperelastics; root = "/Hyperelastics.jl", label = label)
-end
+deploydocs(; repo = "github.com/TRACER-LULab/SystemBondGraphs.jl", devbranch = "main")

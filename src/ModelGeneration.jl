@@ -74,9 +74,11 @@ function _generate_model(bg)
     for J1 ∈ one_junctions
         out_nodes = outneighbor_labels(bg, J1)
         out_nodes = map(x->(J1, x), out_nodes)
+        # out_nodes = map(x ->x, out_nodes)
 
         in_nodes = inneighbor_labels(bg, J1)|>collect
         in_nodes = map(x->(x, J1), in_nodes)
+        # in_nodes = map(x->x, in_nodes)
 
         if !isempty(out_nodes)
             out_sum = sum(x -> bg[x...].model.e, out_nodes)
@@ -93,6 +95,7 @@ function _generate_model(bg)
 
         for i ∈ 2:length(nodes)
             push!(eqns, 0 ~ bg[nodes[i]...].model.f - bg[nodes[i-1]...].model.f)
+            # push!(eqns, 0 ~ bg[nodes[i]].model.f - bg[nodes[i-1]].model.f)
         end
     end
 
@@ -131,17 +134,19 @@ function _generate_model(bg)
         ins = inneighbor_labels(bg, TP)
         for i in ins
             push!(eqns,
-                bg[i, TP].model.f ~ bg[TP].model.f_in)
+                0 ~ bg[TP].model.f_in - bg[i, TP].model.f
+            )
             push!(eqns,
-                bg[i, TP].model.e ~ bg[TP].model.e_in
+                0 ~ bg[TP].model.e_in - bg[i, TP].model.e
             )
         end
         outs = outneighbor_labels(bg, TP)
         for o in outs
             push!(eqns,
-                bg[TP, o].model.f ~ bg[TP].model.f_out)
+                0 ~ bg[TP].model.f_out - bg[TP, o].model.f
+            )
             push!(eqns,
-                bg[TP, o].model.e ~ bg[TP].model.e_out
+                0 ~ bg[TP].model.e_out - bg[TP, o].model.e
             )
         end
     end
@@ -152,17 +157,19 @@ function _generate_model(bg)
         ins = inneighbor_labels(bg, element)
         for i in ins
             push!(eqns,
-                bg[i, element].model.f ~ bg[element].model.f)
+                0 ~ bg[element].model.f - bg[i, element].model.f
+            )
             push!(eqns,
-                bg[i, element].model.e ~ bg[element].model.e
+                0 ~ bg[element].model.e - bg[i, element].model.e
             )
         end
         outs = outneighbor_labels(bg, element)
         for o in outs
             push!(eqns,
-                bg[element, o].model.f ~ bg[element].model.f)
+                0 ~ bg[element].model.f - bg[element, o].model.f
+            )
             push!(eqns,
-                bg[element, o].model.e ~ bg[element].model.e
+                0 ~ bg[element].model.e - bg[element, o].model.e
             )
         end
     end

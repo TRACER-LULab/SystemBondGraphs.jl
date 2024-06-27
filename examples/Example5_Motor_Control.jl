@@ -1,4 +1,4 @@
-using BondGraphs
+using SystemBondGraphs
 using ModelingToolkit: linearize_symbolic, inputs
 # Create Bond Graphs and Model
 @variables t ω(t)
@@ -27,7 +27,8 @@ add_bond!(mat, :J12, :kf, :edge_7)
 add_bond!(mat, :τ, :J12, :edge_8)
 # Generate Model
 model = generate_model(mat)
-# Generate the State-Space Model
-(;A, B, C, D), sys = linearize_symbolic(model, inputs(model), [mat[:J].model.f], simplify = true)
+parameters(model)
+## Generate the State-Space Model
+(;A, B, C, D), sys = linearize_symbolic(model, inputs(model), [mat[:J].model.f], simplify = true,)
 A * unknowns(sys) + B * inputs(sys)
 C * unknowns(sys) + D * inputs(sys)

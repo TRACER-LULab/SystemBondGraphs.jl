@@ -1,4 +1,4 @@
-using BondGraphs
+using SystemBondGraphs
 using OrdinaryDiffEq
 using CairoMakie
 # Plot settings
@@ -27,8 +27,8 @@ add_bond!(mapk, :J1, :Re, :e3)
 add_bond!(mapk, :Re, :C, :e4)
 
 # Generate model and simplify
-model = generate_model(mapk)
-model = structural_simplify(model)
+sys = generate_model(mapk)
+sys, _ = structural_simplify(sys, (inputs(sys), []))
 
 # Set parameters
 ps = [
@@ -47,7 +47,7 @@ u0 = [
 tspan = (0.0, 2.0)
 
 # Solve the ODE
-prob = ODEProblem(model, u0, tspan, ps)
+prob = ODEProblem(sys, u0, tspan, ps)
 sol = solve(prob, Tsit5())
 # Plot the results
 s = sol(0.0:0.01:2.0)

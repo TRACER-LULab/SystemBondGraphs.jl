@@ -1,6 +1,6 @@
-using BondGraphs
+using SystemBondGraphs
 using OrdinaryDiffEq
-using Plots
+using CairoMakie
 # Create the bond graph
 @parameters t
 reaction = ChemBondGraph(t)
@@ -30,4 +30,4 @@ tspan = (0.0, 10.0)
 # # Solve and Plot
 prob = ODEProblem(model, u0,  tspan, ps)
 sol = solve(prob, Tsit5())
-Plots.plot(sol)
+plot(sol)

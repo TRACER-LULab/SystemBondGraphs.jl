@@ -1,7 +1,7 @@
 # # Nonlinear Chaotic Chua Oscillator
-using BondGraphs
+using SystemBondGraphs
 using OrdinaryDiffEq
-using Plots
+using CairoMakie
 # Make the BondGraph
 @variables t
 bg = BondGraph(t)
@@ -33,8 +33,8 @@ add_bond!(bg, :J13, :J02, :edge_8)
 add_bond!(bg, :J02, :C1, :edge_9)
 add_bond!(bg, :J02, :Gn, :edge_10)
 # Generate System
-model = generate_model(bg)
-model = structural_simplify(model)
+sys = generate_model(bg)
+sys, _ = structural_simplify(sys, (inputs(sys), []))
 u0 = [
     bg[:C1].model.q => 0.0,
     bg[:C2].model.q => -0.1,
@@ -51,6 +51,6 @@ ps = [
     bg[:Gn].model.Gb => 0.409091
 ]
 tspan = (0.0, 1e3)
-prob = ODEProblem(model, u0, tspan, ps)
+prob = ODEProblem(sys, u0, tspan, ps)
 sol = solve(prob, Tsit5())
 plot(sol)

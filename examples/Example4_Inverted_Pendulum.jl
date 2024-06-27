@@ -1,6 +1,6 @@
 ## Imports
-using BondGraphs
-using DifferentialEquations
+using SystemBondGraphs
+using OrdinaryDiffEq
 # Create BondGraph
 @variables t
 bg = BondGraph(t)
@@ -47,10 +47,10 @@ eqns = [
 # Extend and build the model
 sys = generate_model(bg)
 sys = extend(sys, theta_model)
-sys = structural_simplify(sys)
+sys, _ = structural_simplify(sys, (inputs(sys), []))
 # Initialize and test the system
 u0 = [
-    θ => -π,
+    θ => -π+0.01,
     x => 0.01,
     bg[:mpx].model.f => 0.0,
     bg[:mpy].model.f => 0.0,

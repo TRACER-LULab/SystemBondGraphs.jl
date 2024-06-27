@@ -2,9 +2,10 @@
 Bond Graph System from:
 > Medina H, Carpenter N. Transverse Third-Damper to Improve Suspension Systems for In-Wheel Motor Driven Electric Vehicles. Journal of Dynamic Systems, Measurement, and Control. 2023 Mar 1;145(3):031003.
 =#
-using BondGraphs
+using SystemBondGraphs
 using OrdinaryDiffEq
 using ControlSystems
+using ModelingToolkit: inputs, linearize_symbolic
 using CairoMakie
 # Plot Setup
 set_theme!(theme_latexfonts())
@@ -118,11 +119,13 @@ op = Dict([
     conventional[:m_us2].model.p => 0.0,
 ])
 # Generate System of Equations
-conventional_system = substitute(generate_model(conventional), ps)
+conventional_model = generate_model(conventional)
+conventional_system = substitute(conventional_model, ps)
+
 third_damper_system = substitute(generate_model(third_damper), ps)
-system = Dict("Conventional"=>conventional_system, "Third Damper"=>third_damper_system)
+systems = Dict("Conventional"=>conventional_system, "Third Damper"=>third_damper_system)
 # Iterate over the different systems
-for (i, (name, system)) in enumerate(system)
+for (i, (name, system)) in enumerate(systems)
     for (j, m) in enumerate([40, 60, 80])
         # Update the mass in the model
         m_ps = Dict([
@@ -134,7 +137,8 @@ for (i, (name, system)) in enumerate(system)
         ])
         system_m = substitute(system, m_ps)
         #
-        (; A, B, C, D), _ = linearize(system_m, [conventional[:Vin].model.Sf], [conventional[:m_us2].model.e], simplify=true, op=op)
+        (; A, B, C, D), _ = linearize_symbolic(system_m, inputs(system_m), [conventional[:m_us2].model.e], simplify=true, op=op)
+        A, B, C, D = map(x->Symbolics.value.(x), [A,B,C,D])
         state_space = ss(A, B, C, D)
         mag, _, w = bode(state_space, (0.0:0.1:30.0) .* 2π)
         p = lines!(mag_ax, w ./ 2π, mag[1, 1, :] ./ b, color=colors[j], linestyle=linestyle[i])

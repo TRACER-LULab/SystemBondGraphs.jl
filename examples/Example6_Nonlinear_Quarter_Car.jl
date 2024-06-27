@@ -1,8 +1,8 @@
-using BondGraphs
+using SystemBondGraphs
 using ModelingToolkit
 using OrdinaryDiffEq
 using IfElse
-using Plots
+using CairoMakie
 # Create Bond graph
 @parameters t
 bg = BondGraph(t)
@@ -55,7 +55,7 @@ add_bond!(bg, :J13, :m_s, :e12)
 
 # ## Generate Model
 sys = generate_model(bg)
-sys = structural_simplify(sys)
+sys, _ = structural_simplify(sys, (inputs(sys), []))
 
 # Add Model Parameters and Initial Conditions Table 5.1
 p = Dict{Num, Float64}()

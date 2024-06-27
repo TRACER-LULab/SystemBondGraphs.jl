@@ -24,7 +24,7 @@ function add_GY!(bg, name)
 
     @variables e_in(bg.graph_data.iv) f_in(bg.graph_data.iv)
     @variables e_out(bg.graph_data.iv) f_out(bg.graph_data.iv)
-    @parameters r
+    @parameters r [description="Modulus of the gyrator"]
 
     eqns = [
         0 ~ e_in - r * f_out,

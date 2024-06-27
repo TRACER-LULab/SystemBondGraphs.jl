@@ -4,7 +4,7 @@ Create a Symbolic/Constant Effort Input. Creates a system with parameters `Se` f
 """
 function add_Se!(bg, name)
     @variables e(bg.graph_data.iv) f(bg.graph_data.iv)
-    @variables Se(bg.graph_data.iv) [input = true]
+    @variables Se(bg.graph_data.iv) [description="Parameter for effort input function", input = true]
     eqns = [0 ~ Se - e]
     model = ODESystem(eqns, bg.graph_data.iv, [e, f, Se], [], name=name)
     type = :Se
