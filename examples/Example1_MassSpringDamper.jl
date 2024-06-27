@@ -30,12 +30,12 @@ sys = generate_model(bg)
 sys, _ = structural_simplify(sys, (inputs(sys), []))
 
 # Set the inital conditions and parameters
-u0 = [bg[:C].model.q => 10.0, bg[:I].model.p => -1.0]
+u0 = [sys.C.q => 10.0, sys.I.p => -1.0]
 ps = [
-    bg[:R].model.R => 1.0,
-    bg[:C].model.C => 0.01,
-    bg[:I].model.I => 1.0,
-    bg[:Se].model.Se => 0.0,
+    sys.R.R => 1.0,
+    sys.C.C => 0.01,
+    sys.I.I => 1.0,
+    sys.Se.Se => 0.0,
 ]
 
 # Set the timespan for the simulation
@@ -51,7 +51,7 @@ latexify(full_equations(sys))
 # set_theme!(theme_latexfonts())
 # f = Figure(size = (400,400))
 # ax = Axis(f[1,1], xlabel = "Time (t)")
-f, ax, p = CairoMakie.plot(sol, axis = (xlabel = "Time (t)",))
+f, ax, p = CairoMakie.plot(sol, axis=(xlabel="Time (t)",))
 save("msd.png", f)
 # s = sol(0.0:0.01:10.0)
 # CairoMakie.lines!(ax, s.t, s[bg[:I].model.p], label = L"p_I")
