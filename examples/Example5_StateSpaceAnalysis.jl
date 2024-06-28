@@ -33,21 +33,17 @@ add_bond!(motor, :j12, :R, :e9)
 
 # Generate Model
 sys = generate_model(motor)
-(; A, B, C, D), sys = ModelingToolkit.linearize_symbolic(sys, [motor[:ec].model.Se, motor[:τd].model.Se], [motor[:kτ].model.q, motor[:J].model.p])
+(; A, B, C, D), sys = ModelingToolkit.linearize_symbolic(
+    sys,
+    [motor[:ec].model.Se, motor[:τd].model.Se],
+    [motor[:kτ].model.q, motor[:J].model.p],
+)
 
 x⃗ = [motor[:kτ].model.q, motor[:J].model.p]
 u⃗ = [motor[:ec].model.Se, motor[:τd].model.Se]
 y⃗ = [motor[:kτ].model.q, motor[:J].model.p]
 
-ss_dict = Dict(
-    :A => A,
-    :B => B,
-    :C => C,
-    :D => D,
-    :x => x⃗,
-    :u => u⃗,
-    :y => y⃗
-)
+ss_dict = Dict(:A => A, :B => B, :C => C, :D => D, :x => x⃗, :u => u⃗, :y => y⃗)
 p = Dict{Num,Float64}()
 @parameters m, ωₙ, R
 p[motor[:Rw].model.R] = 1.0
@@ -69,12 +65,22 @@ motor_tf = minreal(motor_tf)
 # Analysis
 mag, phase, w = bode(motor_tf)
 # AR - plot
-f, ax, p = lines(w, mag[1,1, :], axis = (xscale=log10, ylabel = "Amplitude Ratio", xlabel = "[rad/s]"), label = "Voltage")
-lines!(ax, w, mag[1, 2, :], label="Disturbance Torque")
+f, ax, p = lines(
+    w,
+    mag[1, 1, :],
+    axis = (xscale = log10, ylabel = "Amplitude Ratio", xlabel = "[rad/s]"),
+    label = "Voltage",
+)
+lines!(ax, w, mag[1, 2, :], label = "Disturbance Torque")
 axislegend()
 f
 #
-f, ax, p = lines(w, phase[1,1, :], axis = (xscale=log10, ylabel = "Phase Angle [°]", xlabel = "[rad/s]"), label = "Voltage")
-lines!(ax, w, phase[1, 2, :], label="Disturbance Torque")
+f, ax, p = lines(
+    w,
+    phase[1, 1, :],
+    axis = (xscale = log10, ylabel = "Phase Angle [°]", xlabel = "[rad/s]"),
+    label = "Voltage",
+)
+lines!(ax, w, phase[1, 2, :], label = "Disturbance Torque")
 axislegend()
 f

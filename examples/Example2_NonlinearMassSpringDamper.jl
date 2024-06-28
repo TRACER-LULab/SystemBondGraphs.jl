@@ -10,7 +10,7 @@ bg = BondGraph(t)
 
 # Create the Elements in the bond graph
 @parameters R
-add_R!(bg, :e => (e,f,t,p) -> p[1]*f^3, [R], :R)
+add_R!(bg, :e => (e, f, t, p) -> p[1] * f^3, [R], :R)
 add_C!(bg, :C)
 add_I!(bg, :I)
 add_Se!(bg, :Se)

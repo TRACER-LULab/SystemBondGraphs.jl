@@ -32,7 +32,7 @@ sys_ss, _ = structural_simplify(sys, (inputs(sys), []))
 parameters(sys)
 ## Generate the State-Space Model
 (; A, B, C, D), sys =
-    linearize_symbolic(sys, inputs(sys), [bg[:J].model.f], simplify=true)
+    linearize_symbolic(sys, inputs(sys), [bg[:J].model.f], simplify = true)
 A * unknowns(sys) + B * inputs(sys)
 C * unknowns(sys) + D * inputs(sys)
 ## Generate Transfer Function
@@ -45,6 +45,6 @@ ps = [
     bg[:τ].model.Se => 0.0,
     bg[:Va].model.Se => 0.0,
 ]
-A, B, C, D = map(x->Symbolics.value.(substitute.(x, (ps,))), [A, B, C, D])
+A, B, C, D = map(x -> Symbolics.value.(substitute.(x, (ps,))), [A, B, C, D])
 state_space = ss(A, B, C, D)
 tf(state_space)

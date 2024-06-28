@@ -63,7 +63,8 @@ tspan = (0.0, 10.0)
 prob = ODEProblem(sys, u0, tspan, ps)
 sol = solve(prob, Rodas5())
 #
-f, ax, p = CairoMakie.plot(sol, idxs = [sys.L.p, sys.kτ.q, sys.J.p], axis=(xlabel="Time (t)",))
+f, ax, p =
+    CairoMakie.plot(sol, idxs = [sys.L.p, sys.kτ.q, sys.J.p], axis = (xlabel = "Time (t)",))
 save("msd.png", f)
 axislegend()
 f

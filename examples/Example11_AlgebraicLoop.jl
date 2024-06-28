@@ -32,19 +32,16 @@ add_bond!(bg, :vi, :J0_2, :e9)
 sys = generate_model(bg)
 sys, _ = structural_simplify(sys, (inputs(sys), []))
 ##
-ps = [
-    sys.m.I => 1.0,
-    sys.b1.R => 1.0,
-    sys.b2.R => 1.0,
-    sys.k.C => 1.0,
-    sys.Se.Se => 0.0,
-    sys.vi.Sf => 0.0,
-]|>Dict
-u0 = [
-    sys.m.p => 0.0,
-    sys.k.q => 10.0,
-    sys.b2.e => 5.0,
-]|>Dict
+ps =
+    [
+        sys.m.I => 1.0,
+        sys.b1.R => 1.0,
+        sys.b2.R => 1.0,
+        sys.k.C => 1.0,
+        sys.Se.Se => 0.0,
+        sys.vi.Sf => 0.0,
+    ] |> Dict
+u0 = [sys.m.p => 0.0, sys.k.q => 10.0, sys.b2.e => 5.0] |> Dict
 tspan = (0.0, 10.0)
 prob = ODEProblem(sys, u0, tspan, ps)
 sol = solve(prob, Rodas5())
